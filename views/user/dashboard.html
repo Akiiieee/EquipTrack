@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - EquipTrack</title>
+    <style>
+        body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#fff; }
+        .header { background:#800000; color:#fff; padding:16px; }
+        .container { max-width:1000px; margin:24px auto; padding:0 16px; }
+        .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#ffd60a; color:#800000; font-weight:600; }
+        .card { background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); border-radius:12px; padding:24px; margin-top:16px; }
+        .logout { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); color:#fff; padding:8px 14px; border-radius:8px; text-decoration:none; }
+    </style>
+    </head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h2>EquipTrack User</h2>
+            <div>Welcome, <span id="username">User</span> • <span class="pill" id="role">role</span></div>
+            <div style="margin-top:8px"><a href="#" class="logout" onclick="logout()">Logout</a></div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="card">
+            <h3>Dashboard</h3>
+            <p>Your role determines what you can access. This is a placeholder dashboard for admins and staff.</p>
+            <div id="adminOnly" style="display:none; margin-top:8px;">
+                <strong>Admin Tools:</strong> Manage staff, approve requests, etc.
+            </div>
+            <div id="staffOnly" style="display:none; margin-top:8px;">
+                <strong>Staff Tools:</strong> Submit equipment requests, view assignments, etc.
+            </div>
+        </div>
+    </div>
+    <script>
+        function loadSession(){
+            fetch('../../php/superadmin/user_check_session.php')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.logged_in) {
+                        window.location.href = './login.html';
+                        return;
+                    }
+                    document.getElementById('username').textContent = data.username || 'User';
+                    document.getElementById('role').textContent = (data.role || '').toUpperCase();
+                    if ((data.role || '').toLowerCase() === 'admin') {
+                        document.getElementById('adminOnly').style.display = 'block';
+                    } else {
+                        document.getElementById('staffOnly').style.display = 'block';
+                    }
+                })
+                .catch(() => { window.location.href = './login.html'; });
+        }
+        function heartbeat(){
+            fetch('../../php/superadmin/heartbeat.php', { method:'POST' }).catch(()=>{});
+        }
+        function logout(){
+            fetch('../../php/superadmin/user_logout.php', { method:'POST' })
+                .then(() => { window.location.href = './login.html'; })
+                .catch(() => { window.location.href = './login.html'; });
+        }
+        document.addEventListener('DOMContentLoaded', function(){
+            loadSession();
+            heartbeat();
+            setInterval(heartbeat, 120000); // every 2 minutes
+        });
+    </script>
+</body>
+</html>
+
+

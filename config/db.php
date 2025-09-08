@@ -83,4 +83,19 @@ function supabase_update(string $table, array $filters, array $partialRow): arra
     }
     return supabase_request('PATCH', $table, $params, $partialRow, ['Prefer: return=representation']);
 }
+
+/**
+ * Activity log helper. Expects a table `activity_log` with columns:
+ * id (uuid/serial), actor_type (text), actor_id (bigint or text), action (text), details (text/json), created_at (timestamp default now()).
+ */
+function log_activity(string $actorType, $actorId, string $action, $details = null): void {
+    // Best-effort logging; ignore failures to avoid breaking main flow
+    $row = [
+        'actor_type' => $actorType,
+        'actor_id' => is_numeric($actorId) ? intval($actorId) : strval($actorId),
+        'action' => $action,
+        'details' => is_array($details) ? json_encode($details) : (string)($details ?? ''),
+    ];
+    try { supabase_insert('activity_log', $row); } catch (\Throwable $e) { /* noop */ }
+}
 ?>

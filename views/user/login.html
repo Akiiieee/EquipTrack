@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Login - EquipTrack</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#fff; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+        .login { width:100%; max-width:380px; padding:32px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.1); }
+        h1 { margin:0 0 18px; color:#800000; text-align:center; }
+        label { display:block; margin:10px 0 6px; color:#800000; font-weight:600; }
+        input { width:100%; padding:12px; border:2px solid #e9ecef; border-radius:8px; }
+        button { width:100%; margin-top:14px; padding:12px; background:#800000; color:#fff; border:none; border-radius:8px; cursor:pointer; }
+        button:hover { background:#660000; }
+        .message { margin-top:10px; color:#800000; font-weight:600; text-align:center; }
+        .link { text-align:center; margin-top:12px; }
+        .link a { color:#800000; }
+    </style>
+    </head>
+<body>
+    <div class="login">
+        <h1>User Login</h1>
+        <form id="userLoginForm">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Login</button>
+            <div class="message" id="loginMessage"></div>
+        </form>
+        <div class="link">Super Admin? <a href="../superadmin/super_admin_login.html">Login here</a></div>
+    </div>
+    <script>
+        document.getElementById('userLoginForm').addEventListener('submit', function(e){
+            e.preventDefault();
+            const msg = document.getElementById('loginMessage');
+            msg.textContent = '';
+            const fd = new FormData(this);
+            fetch('../../php/superadmin/user_login.php', { method:'POST', body: fd })
+                .then(r => r.text())
+                .then(t => {
+                    try {
+                        const data = JSON.parse(t);
+                        if (data.success) {
+                            msg.style.color = 'green';
+                            msg.textContent = 'Login successful';
+                            setTimeout(()=>{ window.location.href = data.redirect || './dashboard.html'; }, 700);
+                        } else {
+                            msg.style.color = '#800000';
+                            msg.textContent = data.message || 'Login failed';
+                        }
+                    } catch(err){
+                        console.error('Parse error', err, t);
+                        msg.textContent = 'Server error';
+                    }
+                })
+                .catch(err => {
+                    console.error('Login error', err);
+                    msg.textContent = 'Network error';
+                });
+        });
+    </script>
+</body>
+</html>
+
+

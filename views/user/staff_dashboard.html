@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard - EquipTrack</title>
+    <style>
+        body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#fff; }
+        .header { background:#800000; color:#fff; padding:16px; }
+        .container { max-width:1100px; margin:24px auto; padding:0 16px; }
+        .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#ffd60a; color:#800000; font-weight:600; }
+        .card { background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); border-radius:12px; padding:24px; margin-top:16px; }
+        .logout { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); color:#fff; padding:8px 14px; border-radius:8px; text-decoration:none; }
+    </style>
+    </head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h2>EquipTrack Staff</h2>
+            <div>Welcome, <span id="username">Staff</span> • <span class="pill">STAFF</span></div>
+            <div style="margin-top:8px"><a href="#" class="logout" onclick="logout()">Logout</a></div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="card">
+            <h3>Staff Dashboard</h3>
+            <p>Only users with role=staff can access this page.</p>
+        </div>
+    </div>
+    <script>
+        function enforceRole(){
+            fetch('../../php/superadmin/user_check_session.php')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.logged_in || (data.role || '').toLowerCase() !== 'staff') {
+                        window.location.href = './login.html';
+                        return;
+                    }
+                    document.getElementById('username').textContent = data.username || 'Staff';
+                })
+                .catch(() => { window.location.href = './login.html'; });
+        }
+        function heartbeat(){ fetch('../../php/superadmin/heartbeat.php', { method:'POST' }).catch(()=>{}); }
+        function logout(){
+            fetch('../../php/superadmin/user_logout.php', { method:'POST' })
+                .then(() => { window.location.href = './login.html'; })
+                .catch(() => { window.location.href = './login.html'; });
+        }
+        document.addEventListener('DOMContentLoaded', function(){
+            enforceRole();
+            heartbeat();
+            setInterval(heartbeat, 120000);
+        });
+    </script>
+</body>
+</html>
+
+
