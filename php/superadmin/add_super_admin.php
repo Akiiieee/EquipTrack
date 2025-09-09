@@ -47,6 +47,7 @@ if (empty($email)) {
     $errors[] = 'Invalid email format';
 }
 
+
 // Check if username or email already exists (Supabase)
 if (empty($errors)) {
     // Use OR logic by querying twice (Supabase REST doesn't support OR easily without RLS bypass)

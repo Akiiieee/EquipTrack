@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Departments - EquipTrack</title>
+    <link rel="stylesheet" href="../../css/superadmin/dashboard.css">
+</head>
+<body>
+    <header class="header" style="position:sticky; top:0; z-index:20;">
+        <div class="header-content">
+            <div class="logo"><h1>EquipTrack</h1></div>
+            <div class="user-info">
+                <div class="welcome">Welcome, <span id="username">Super Admin</span></div>
+                <a href="#" class="logout-btn" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </header>
+    <div style="max-width:1400px; margin:0 auto; display:grid; grid-template-columns:260px 1fr; gap:24px; padding:24px;">
+        <aside style="background:#fff; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.08); overflow:auto; position:sticky; top:90px; align-self:start; height:calc(100vh - 110px);">
+            <div style="background:#800000; color:#fff; padding:18px 20px; font-weight:600;">Super Admin Panel</div>
+            <nav style="padding:14px 10px;">
+                <a href="dashboard.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Dashboard</a>
+                <a href="add_super_admin.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Manage Super Admins</a>
+                <a href="users.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Users</a>
+                <a href="departments.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#800000; text-decoration:none; border-radius:8px; background:#fff3bf;">Departments</a>
+            </nav>
+        </aside>
+        <main>
+            <div class="form-card" id="departmentsCard" style="margin-top:0;">
+                <h3 style="color:#800000; margin-bottom: 15px;">Departments</h3>
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <select id="new_department" style="flex:1; min-width:240px; padding:12px; border:2px solid #e9ecef; border-radius:8px;"></select>
+                    <input type="text" id="deptName" placeholder="New department name" style="flex:1; min-width:240px; padding:12px; border:2px solid #e9ecef; border-radius:8px;">
+                    <button type="button" id="addDeptBtn" class="submit-btn" style="background:#ffd60a; color:#800000;">Add</button>
+                    <button type="button" id="renameDeptBtn" class="submit-btn" style="background:#800000; color:#fff;">Rename</button>
+                    <button type="button" id="deleteDeptBtn" class="submit-btn" style="background:#dc3545; color:#fff;">Delete</button>
+                    <span id="deptMsg" class="message" style="display:none;"></span>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../../js/superadmin/departments_manage.js"></script>
+</body>
+</html>
+
+

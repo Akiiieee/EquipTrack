@@ -16,19 +16,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once '../../config/db.php';
 
-// Fetch counts from Supabase 'user' table by role
+// Users by role
 [$codeAdmin, $rowsAdmin] = supabase_select('user', ['role' => 'eq.admin'], 'user_id');
 [$codeStaff, $rowsStaff] = supabase_select('user', ['role' => 'eq.staff'], 'user_id');
-
 $totalAdmins = (is_array($rowsAdmin)) ? count($rowsAdmin) : 0;
 $totalStaff = (is_array($rowsStaff)) ? count($rowsStaff) : 0;
 $totalUsers = $totalAdmins + $totalStaff;
+
+// Departments count
+[$codeDept, $rowsDept] = supabase_select('departments', [], 'department_id');
+$totalDepartments = (is_array($rowsDept)) ? count($rowsDept) : 0;
 
 echo json_encode([
     'success' => true,
     'admins' => $totalAdmins,
     'staff' => $totalStaff,
-    'total' => $totalUsers
+    'total' => $totalUsers,
+    'departments' => $totalDepartments
 ]);
 ?>
 
