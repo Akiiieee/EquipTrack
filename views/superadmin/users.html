@@ -4,14 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Users - EquipTrack</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👥</text></svg>">
     <link rel="stylesheet" href="../../css/superadmin/dashboard.css">
 </head>
 <body>
     <header class="header" style="position:sticky; top:0; z-index:20;">
         <div class="header-content">
-            <div class="logo"><h1>EquipTrack</h1></div>
+            <div class="logo" style="display:flex; align-items:center; gap:12px;">
+                <h1>EquipTrack</h1>
+            </div>
             <div class="user-info">
-                <div class="welcome">Welcome, <span id="username">Super Admin</span></div>
+                <div class="welcome"><span id="username">Super Admin</span></div>
+                <div class="avatar-wrap">
+                    <div id="avatarCircle" class="avatar-circle" title="Profile"></div>
+                    <div class="avatar-actions">
+                        <button id="avatarOpen" class="icon-btn" title="Upload" aria-label="Upload">📷</button>
+                        <button id="avatarRemove" class="icon-btn" title="Remove" aria-label="Remove">🗑️</button>
+                    </div>
+                </div>
                 <a href="#" class="logout-btn" onclick="logout()">Logout</a>
             </div>
         </div>
@@ -24,11 +34,15 @@
                 <a href="add_super_admin.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Manage Super Admins</a>
                 <a href="users.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#800000; text-decoration:none; border-radius:8px; background:#fff3bf;">Users</a>
                 <a href="departments.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Departments</a>
+                <a href="equipment.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Equipment</a>
             </nav>
         </aside>
         <main>
             <div class="form-card" id="manageUsersCard" style="margin-top:0;">
-                <h3 style="color:#800000; margin-bottom: 15px;">Manage Users</h3>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 15px;">
+                    <h3 style="color:#800000; margin:0;">Manage Users</h3>
+                    <button id="openAddUser" class="submit-btn" style="background:#ffd60a; color:#800000;">Add User</button>
+                </div>
                 <div id="usersTable" style="overflow:auto;">
                     <table style="width:100%; border-collapse: collapse;">
                         <thead>
@@ -46,9 +60,421 @@
                     </table>
                 </div>
             </div>
+            <!-- Add User Modal -->
+            <div id="addUserModal" style="position:fixed; inset:0; background:rgba(0,0,0,.4); display:none; align-items:center; justify-content:center;">
+                <div class="form-card" style="width:100%; max-width:520px;">
+                    <h3 style="color:#800000; margin-bottom:12px;">Add User</h3>
+                    <form id="addUserForm">
+                        <div style="display:grid; gap:12px;">
+                            <div>
+                                <label>Username</label>
+                                <input type="text" name="username" required>
+                            </div>
+                            <div>
+                                <label>Email</label>
+                                <input type="email" name="email" required>
+                            </div>
+                            <div>
+                                <label>Password</label>
+                                <input type="password" name="password" minlength="6" required>
+                            </div>
+                            <div>
+                                <label>Role</label>
+                                <select name="role" required>
+                                    <option value="admin">Admin</option>
+                                    <option value="staff">Staff</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Department</label>
+                                <select name="department" id="addUserDepartment" required>
+                                    <option value="" disabled selected>Loading…</option>
+                                </select>
+                            </div>
+                            <div class="message" id="addUserMessage"></div>
+                            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:6px;">
+                                <button type="button" id="cancelAddUser" class="submit-btn" style="background:#6c757d;">Cancel</button>
+                                <button type="submit" class="submit-btn">Create</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </main>
     </div>
-    <script src="../../js/superadmin/users_manage.js"></script>
+    <!-- Profile Modal -->
+    <div id="profileModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Profile Picture</h3>
+                <span class="close" onclick="closeProfileModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div id="currentProfileDisplay" style="width: 120px; height: 120px; border-radius: 50%; background: #ffd60a; color: #800000; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: bold; margin: 0 auto 15px; background-size: cover; background-position: center;"></div>
+                    <p style="color: #666; margin: 0;">Current Profile Picture</p>
+                </div>
+                <form id="profileForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="profileImage">Upload New Picture</label>
+                        <input type="file" id="profileImage" name="profile_image" accept="image/*" style="margin-bottom: 15px;">
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="cancel-btn" onclick="closeProfileModal()">Cancel</button>
+                        <button type="submit" class="submit-btn" style="background: #ffd60a; color: #800000;">Update Profile</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reusable Confirm Modal & Toast Container -->
+    <div id="confirmModal" style="position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center;">
+        <div class="form-card" style="width:100%; max-width:420px;">
+            <h3 id="confirmTitle" style="color:#800000; margin-bottom:10px;">Please Confirm</h3>
+            <div id="confirmMessage" style="color:#333;">Are you sure?</div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
+                <button type="button" id="confirmCancel" class="submit-btn" style="background:#6c757d;">Cancel</button>
+                <button type="button" id="confirmOk" class="submit-btn">OK</button>
+            </div>
+        </div>
+    </div>
+    <div id="toastContainer" style="position: fixed; top: 18px; right: 18px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+    <script>
+        (function(){
+            // helpers
+            function openConfirm(message, title='Please Confirm'){
+                return new Promise(resolve => {
+                    const cm = document.getElementById('confirmModal');
+                    const msg = document.getElementById('confirmMessage');
+                    const ttl = document.getElementById('confirmTitle');
+                    const ok = document.getElementById('confirmOk');
+                    const cancel = document.getElementById('confirmCancel');
+                    ttl.textContent = title;
+                    msg.textContent = message;
+                    function cleanup(result){
+                        cm.style.display='none';
+                        ok.removeEventListener('click', okH);
+                        cancel.removeEventListener('click', cancelH);
+                        cm.removeEventListener('click', backdropH);
+                        resolve(result);
+                    }
+                    function okH(){ cleanup(true); }
+                    function cancelH(){ cleanup(false); }
+                    function backdropH(e){ if(e.target===cm) cleanup(false); }
+                    ok.addEventListener('click', okH);
+                    cancel.addEventListener('click', cancelH);
+                    cm.addEventListener('click', backdropH);
+                    cm.style.display='flex';
+                });
+            }
+            function showToast(text){
+                const c = document.getElementById('toastContainer');
+                const el = document.createElement('div');
+                el.style.background = '#800000';
+                el.style.color = '#fff';
+                el.style.padding = '10px 14px';
+                el.style.borderRadius = '8px';
+                el.style.boxShadow = '0 6px 16px rgba(0,0,0,.2)';
+                el.textContent = text;
+                c.appendChild(el);
+                setTimeout(()=>{ el.remove(); }, 2500);
+            }
+            function checkLogin(){
+                return fetch('../../php/superadmin/check_session.php').then(r=>r.json()).then(d=>{ if(!d.logged_in){ window.location.href='super_admin_login.html'; } else { document.getElementById('username').textContent = d.username || 'Super Admin'; } });
+            }
+            async function logout(){
+                const ok = await openConfirm('Are you sure you want to logout?', 'Logout');
+                if (!ok) return;
+                fetch('../../php/superadmin/logout.php', { method:'POST' })
+                    .then(r=>r.json())
+                    .then(d=>{ if(d.success){ showToast('Logged out'); setTimeout(()=>{ window.location.href='super_admin_login.html'; }, 600); } else { showToast(d.message||'Logout failed'); } })
+                    .catch(()=>{ showToast('Network error'); setTimeout(()=>{ window.location.href='super_admin_login.html'; }, 800); });
+            }
+            window.logout = logout;
+
+            // Expose edit modal opener in this closure
+            let openEditModal; // will be assigned after modal is created
+
+            function loadUsers(){
+                const body = document.getElementById('usersBody');
+                fetch('../../php/superadmin/users_list.php')
+                    .then(r=>r.json())
+                    .then(data=>{
+                        if (!data.success) { body.innerHTML = '<tr><td colspan="5" style="padding:10px; color:#800000;">Failed to load users</td></tr>'; return; }
+                        const rows = (data.users||[]).map(u=>{
+                            const safe = s=>String(s||'').replace(/</g,'&lt;');
+                            return `<tr data-user='${JSON.stringify({id:u.user_id,username:u.username,email:u.email,role:u.role,department:u.department}).replace(/'/g,"&apos;")}'>
+                                <td style="padding:8px;">${safe(u.username)}</td>
+                                <td style="padding:8px;">${safe(u.email)}</td>
+                                <td style="padding:8px; text-transform:uppercase;">${safe(u.role)}</td>
+                                <td style="padding:8px;">${safe(u.department)}</td>
+                                <td style="padding:8px; display:flex; gap:8px;">
+                                    <button data-id="${u.user_id}" class="editBtn" style="background:#ffd60a;color:#800000;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;">Edit</button>
+                                    <button data-id="${u.user_id}" class="deleteBtn" style="background:#dc3545;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;">Delete</button>
+                                </td>
+                            </tr>`;
+                        }).join('');
+                        body.innerHTML = rows || '<tr><td colspan="5" style="padding:10px; color:#666;">No users</td></tr>';
+                        body.querySelectorAll('.editBtn').forEach(btn=>{
+                            btn.addEventListener('click', function(){
+                                const tr = this.closest('tr');
+                                if (!tr) return;
+                                const info = JSON.parse(tr.getAttribute('data-user').replace(/&apos;/g,"'"));
+                                openEditModal(info);
+                            });
+                        });
+                        body.querySelectorAll('.deleteBtn').forEach(btn=>{
+                            btn.addEventListener('click', async function(){
+                                const id = this.getAttribute('data-id');
+                                const ok = await openConfirm('Delete this user?', 'Delete User');
+                                if (!ok) return;
+                                const fd = new FormData(); fd.append('user_id', id);
+                                fetch('../../php/superadmin/user_delete.php', { method:'POST', body:fd })
+                                    .then(r=>r.json())
+                                    .then(res=>{ if(res.success){ showToast('User deleted'); loadUsers(); } else { showToast(res.message||'Delete failed'); } })
+                                    .catch(()=>showToast('Network error'));
+                            });
+                        });
+                    })
+                    .catch(()=>{ body.innerHTML = '<tr><td colspan="5" style="padding:10px; color:#800000;">Network error</td></tr>'; });
+            }
+
+            // Profile functionality (matching dashboard)
+            function loadProfile() {
+                console.log('Loading profile...');
+                const avatarElement = document.getElementById('avatarCircle');
+                if (!avatarElement) {
+                    console.error('Avatar element not found, retrying...');
+                    setTimeout(loadProfile, 500);
+                    return;
+                }
+                
+                fetch('../../php/superadmin/get_profile.php')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Profile data:', data);
+                        
+                        if (data.success && data.profile_image) {
+                            avatarElement.style.backgroundImage = `url('../../uploads/avatars/${data.profile_image}')`;
+                            avatarElement.style.backgroundSize = 'cover';
+                            avatarElement.style.backgroundPosition = 'center';
+                            const currentDisplay = document.getElementById('currentProfileDisplay');
+                            if (currentDisplay) {
+                                currentDisplay.style.backgroundImage = `url('../../uploads/avatars/${data.profile_image}')`;
+                                currentDisplay.style.backgroundSize = 'cover';
+                                currentDisplay.style.backgroundPosition = 'center';
+                            }
+                        } else {
+                            const username = data.username || 'Super Admin';
+                            const firstLetter = username.charAt(0).toUpperCase();
+                            avatarElement.textContent = firstLetter;
+                            avatarElement.style.backgroundImage = 'none';
+                            const currentDisplay = document.getElementById('currentProfileDisplay');
+                            if (currentDisplay) {
+                                currentDisplay.textContent = firstLetter;
+                                currentDisplay.style.backgroundImage = 'none';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading profile:', error);
+                        // Fallback: show first letter of current username
+                        const usernameElement = document.getElementById('username');
+                        if (usernameElement) {
+                            const username = usernameElement.textContent || 'Super Admin';
+                            const firstLetter = username.charAt(0).toUpperCase();
+                            avatarElement.textContent = firstLetter;
+                            avatarElement.style.backgroundImage = 'none';
+                        }
+                    });
+            }
+
+            function openProfileModal() {
+                document.getElementById('profileModal').style.display = 'block';
+                loadProfile();
+            }
+
+            function closeProfileModal() {
+                document.getElementById('profileModal').style.display = 'none';
+                document.getElementById('profileForm').reset();
+            }
+
+            function removeProfile() {
+                openConfirm('Remove profile picture?', 'Remove Profile').then(confirmed => {
+                    if (!confirmed) return;
+                    fetch('../../php/superadmin/remove_profile.php', { method: 'POST' })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showToast('Profile picture removed');
+                                loadProfile();
+                                closeProfileModal();
+                            } else {
+                                showToast(data.message || 'Failed to remove profile');
+                            }
+                        })
+                        .catch(() => showToast('Network error'));
+                });
+            }
+
+            // Profile form submission
+            document.getElementById('profileForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                fetch('../../php/superadmin/update_profile.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Profile updated successfully');
+                        loadProfile();
+                        closeProfileModal();
+                    } else {
+                        showToast(data.message || 'Failed to update profile');
+                    }
+                })
+                .catch(() => showToast('Network error'));
+            });
+
+            // Avatar button event listeners
+            document.getElementById('avatarOpen').addEventListener('click', openProfileModal);
+            document.getElementById('avatarRemove').addEventListener('click', removeProfile);
+
+            document.addEventListener('DOMContentLoaded', function(){
+                checkLogin().then(() => {
+                    loadUsers();
+                    // Set fallback avatar immediately
+                    const avatarElement = document.getElementById('avatarCircle');
+                    const usernameElement = document.getElementById('username');
+                    if (avatarElement && usernameElement) {
+                        const username = usernameElement.textContent || 'Super Admin';
+                        const firstLetter = username.charAt(0).toUpperCase();
+                        avatarElement.textContent = firstLetter;
+                        avatarElement.style.backgroundImage = 'none';
+                    }
+                    // Load profile after a short delay to ensure DOM is ready
+                    setTimeout(loadProfile, 100);
+                });
+                const modal = document.getElementById('addUserModal');
+                const openBtn = document.getElementById('openAddUser');
+                const cancelBtn = document.getElementById('cancelAddUser');
+                const form = document.getElementById('addUserForm');
+                const msg = document.getElementById('addUserMessage');
+                function populateDepartments(){
+                    const sel = document.getElementById('addUserDepartment');
+                    sel.innerHTML = '<option value="" disabled selected>Loading…</option>';
+                    return fetch('../../php/superadmin/departments_list.php')
+                        .then(r=>r.json())
+                        .then(data=>{
+                            const options = (data.departments||[]).map(d=>`<option value="${String(d.department_name).replace(/"/g,'&quot;')}">${d.department_name}</option>`).join('');
+                            sel.innerHTML = options || '<option value="" disabled selected>No departments</option>';
+                        })
+                        .catch(()=>{ sel.innerHTML = '<option value="" disabled selected>Failed to load</option>'; });
+                }
+                openBtn.addEventListener('click', ()=>{ msg.textContent=''; populateDepartments().then(()=>{ modal.style.display='flex'; }); });
+                cancelBtn.addEventListener('click', ()=>{ modal.style.display='none'; form.reset(); });
+                modal.addEventListener('click', (e)=>{ if(e.target===modal){ modal.style.display='none'; }});
+                form.addEventListener('submit', function(e){
+                    e.preventDefault();
+                    msg.textContent='';
+                    const fd = new FormData(form);
+                    const pwd = (fd.get('password')||'').toString();
+                    if (pwd.length < 6) { msg.style.color='#800000'; msg.textContent='Password must be at least 6 characters'; return; }
+                    fetch('../../php/superadmin/add_user.php', { method:'POST', body: fd })
+                        .then(r=>r.text())
+                        .then(t=>{
+                            try{
+                                const data = JSON.parse(t);
+                                if (data.success){ msg.style.color='green'; msg.textContent='User added'; form.reset(); modal.style.display='none'; loadUsers(); showToast('User added successfully'); }
+                                else { msg.style.color='#800000'; msg.textContent=data.message||'Failed to add user'; showToast(data.message||'Failed to add user'); }
+                            }catch(err){ msg.style.color='#800000'; msg.textContent='Server error'; showToast('Server error'); }
+                        })
+                        .catch(()=>{ msg.style.color='#800000'; msg.textContent='Network error'; showToast('Network error'); });
+                });
+
+                // Edit modal (injected)
+                const editModal = document.createElement('div');
+                editModal.id = 'editUserModal';
+                editModal.style.cssText='position:fixed; inset:0; background:rgba(0,0,0,.4); display:none; align-items:center; justify-content:center;';
+                editModal.innerHTML = `
+                    <div class="form-card" style="width:100%; max-width:520px;">
+                        <h3 style="color:#800000; margin-bottom:12px;">Edit User</h3>
+                        <form id="editUserForm">
+                            <input type="hidden" name="user_id" />
+                            <div style="display:grid; gap:12px;">
+                                <div>
+                                    <label>Email</label>
+                                    <input type="email" name="email" required>
+                                </div>
+                                <div>
+                                    <label>Role</label>
+                                    <select name="role" required>
+                                        <option value="admin">Admin</option>
+                                        <option value="staff">Staff</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>Department</label>
+                                    <select name="department" id="editUserDepartment" required>
+                                        <option value="" disabled selected>Loading…</option>
+                                    </select>
+                                </div>
+                                <div class="message" id="editUserMessage"></div>
+                                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:6px;">
+                                    <button type="button" id="cancelEditUser" class="submit-btn" style="background:#6c757d;">Cancel</button>
+                                    <button type="submit" class="submit-btn">Save</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>`;
+                document.body.appendChild(editModal);
+
+                function populateEditDepartments(selected){
+                    const sel = document.getElementById('editUserDepartment');
+                    sel.innerHTML = '<option value="" disabled selected>Loading…</option>';
+                    return fetch('../../php/superadmin/departments_list.php')
+                        .then(r=>r.json())
+                        .then(data=>{
+                            const options = (data.departments||[]).map(d=>`<option value="${String(d.department_name).replace(/"/g,'&quot;')}">${d.department_name}</option>`).join('');
+                            sel.innerHTML = options || '<option value="" disabled selected>No departments</option>';
+                            if (selected) sel.value = selected;
+                        })
+                        .catch(()=>{ sel.innerHTML = '<option value="" disabled selected>Failed to load</option>'; });
+                }
+
+                openEditModal = function(info){
+                    const ef = document.getElementById('editUserForm');
+                    const emsg = document.getElementById('editUserMessage');
+                    ef.user_id.value = info.id;
+                    ef.email.value = info.email || '';
+                    ef.role.value = (info.role||'').toLowerCase() === 'admin' ? 'admin' : 'staff';
+                    populateEditDepartments(info.department).then(()=>{ editModal.style.display='flex'; });
+                    emsg.textContent='';
+                }
+
+                document.getElementById('cancelEditUser').addEventListener('click', ()=>{ editModal.style.display='none'; });
+                editModal.addEventListener('click', (e)=>{ if(e.target===editModal){ editModal.style.display='none'; }});
+                document.getElementById('editUserForm').addEventListener('submit', function(e){
+                    e.preventDefault();
+                    const emsg = document.getElementById('editUserMessage');
+                    emsg.textContent='';
+                    const fd = new FormData(this);
+                    fetch('../../php/superadmin/user_update.php', { method:'POST', body: fd })
+                        .then(r=>r.json())
+                        .then(res=>{ if(res.success){ editModal.style.display='none'; loadUsers(); showToast('User updated successfully'); } else { emsg.style.color='#800000'; emsg.textContent = res.message||'Update failed'; showToast(res.message||'Update failed'); } })
+                        .catch(()=>{ emsg.style.color='#800000'; emsg.textContent='Network error'; showToast('Network error'); });
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
 

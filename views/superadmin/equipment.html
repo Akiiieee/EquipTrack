@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipment Management - EquipTrack</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <link rel="stylesheet" href="../../css/superadmin/dashboard.css">
+</head>
+<body>
+    <header class="header" style="position:sticky; top:0; z-index:20;">
+        <div class="header-content">
+            <div class="logo" style="display:flex; align-items:center; gap:12px;">
+                <h1>EquipTrack</h1>
+            </div>
+            <div class="user-info">
+                <div class="welcome"><span id="username">Super Admin</span></div>
+                <div class="avatar-wrap">
+                    <div id="avatarCircle" class="avatar-circle" title="Profile"></div>
+                    <div class="avatar-actions">
+                        <button id="avatarOpen" class="icon-btn" title="Upload" aria-label="Upload">📷</button>
+                        <button id="avatarRemove" class="icon-btn" title="Remove" aria-label="Remove">🗑️</button>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div style="max-width:1400px; margin:0 auto; display:grid; grid-template-columns:260px 1fr; gap:24px; padding:24px;">
+        <aside style="background:#fff; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.08); overflow:auto; position:sticky; top:90px; align-self:start; height:calc(100vh - 110px);">
+            <div style="background:#800000; color:#fff; padding:18px 20px; font-weight:600;">Super Admin Panel</div>
+            <nav style="padding:14px 10px;">
+                <a href="dashboard.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Dashboard</a>
+                <a href="add_super_admin.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Manage Super Admins</a>
+                <a href="users.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Users</a>
+                <a href="departments.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Departments</a>
+                <a href="equipment.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#800000; text-decoration:none; border-radius:8px; background:#fff3bf;">Equipment</a>
+            </nav>
+        </aside>
+        <main>
+            <div class="form-card" id="equipmentCard" style="margin-top:0;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 15px;">
+                    <h3 style="color:#800000; margin:0;">Equipment Management</h3>
+                    <button id="addEquipmentBtn" class="submit-btn" style="background:#ffd60a; color:#800000;">Add Equipment</button>
+                </div>
+                <div id="equipmentTable" style="overflow:auto;">
+                    <table style="width:100%; border-collapse: collapse;" class="equipment-table">
+                        <thead>
+                            <tr style="text-align:left; border-bottom:1px solid #eee;">
+                                <th style="padding:8px;">Image</th>
+                                <th style="padding:8px;">Equipment Name</th>
+                                <th style="padding:8px;">Quantity</th>
+                                <th style="padding:8px;">Department</th>
+                                <th style="padding:8px;">Status</th>
+                                <th style="padding:8px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="equipmentTableBody">
+                            <tr><td colspan="6" style="padding:10px; color:#666;">Loading equipment…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Equipment Modal -->
+    <div id="equipmentModal" class="modal equipment-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add Equipment</h3>
+                <span class="close">&times;</span>
+            </div>
+            <form id="equipmentForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" id="equipmentId" name="equipment_id">
+                    <input type="hidden" id="formMode" name="mode" value="add">
+                    
+                    <div class="form-group">
+                        <label for="equipmentName">Equipment Name *</label>
+                        <input type="text" id="equipmentName" name="equipment_name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="equipmentQuantity">Quantity *</label>
+                        <input type="number" id="equipmentQuantity" name="quantity" min="1" value="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="equipmentDepartment">Department *</label>
+                        <select id="equipmentDepartment" name="department" required>
+                            <option value="">Select Department</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="statusGroup" style="display: none;">
+                        <label for="equipmentStatus">Status *</label>
+                        <select id="equipmentStatus" name="status" required>
+                            <option value="available">Available</option>
+                            <option value="in_use">In Use</option>
+                            <option value="maintenance">Under Maintenance</option>
+                            <option value="retired">Retired</option>
+                        </select>
+                    </div>
+                    <input type="hidden" id="equipmentStatusHidden" name="status" value="available">
+                    
+                    <div class="form-group">
+                        <label for="equipmentImage">Equipment Image</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="equipmentImage" name="image" accept="image/*">
+                            <div class="file-input-display">
+                                <span class="file-icon">📷</span>
+                                <span class="file-text" id="fileText">Choose file or drag and drop</span>
+                                <span class="file-name" id="fileName" style="display: none;"></span>
+                            </div>
+                        </div>
+                        <div id="currentImagePreview" style="margin-top: 15px; display: none;">
+                            <img id="currentImage" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 2px solid #e9ecef;">
+                        </div>
+                    </div>
+                    
+                    <div id="formMessage" class="form-message"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Equipment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Confirm Action</h3>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Are you sure you want to perform this action?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="confirmCancel" class="btn btn-secondary">Cancel</button>
+                <button id="confirmOk" class="btn btn-danger">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Profile Picture</h3>
+                <span class="close" onclick="closeProfileModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div id="currentProfileDisplay" style="width: 120px; height: 120px; border-radius: 50%; background: #ffd60a; color: #800000; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: bold; margin: 0 auto 15px; background-size: cover; background-position: center;"></div>
+                    <p style="color: #666; margin: 0;">Current Profile Picture</p>
+                </div>
+                <form id="profileForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="profileImage">Upload New Picture</label>
+                        <input type="file" id="profileImage" name="profile_image" accept="image/*" style="margin-bottom: 15px;">
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="cancel-btn" onclick="closeProfileModal()">Cancel</button>
+                        <button type="submit" class="submit-btn" style="background: #ffd60a; color: #800000;">Update Profile</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script>
+        (function() {
+            // Error handling for async operations
+            window.addEventListener('unhandledrejection', function(event) {
+                console.warn('Unhandled promise rejection:', event.reason);
+                event.preventDefault();
+            });
+
+            // Session check
+            async function checkLogin() {
+                try {
+                    const response = await fetch('../../php/superadmin/check_session.php');
+                    const data = await response.json();
+                    if (!data.logged_in) {
+                        window.location.href = 'super_admin_login.html';
+                        return false;
+                    }
+                    document.getElementById('username').textContent = data.username;
+                    return true;
+                } catch (error) {
+                    console.warn('Session check error:', error);
+                    window.location.href = 'super_admin_login.html';
+                    return false;
+                }
+            }
+
+            // Profile functionality (matching dashboard)
+            function loadProfile() {
+                console.log('Loading profile...');
+                const avatarElement = document.getElementById('avatarCircle');
+                if (!avatarElement) {
+                    console.error('Avatar element not found, retrying...');
+                    setTimeout(loadProfile, 500);
+                    return;
+                }
+                
+                fetch('../../php/superadmin/get_profile.php')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Profile data:', data);
+                        
+                        if (data.success && data.profile_image) {
+                            avatarElement.style.backgroundImage = `url('../../uploads/avatars/${data.profile_image}')`;
+                            avatarElement.style.backgroundSize = 'cover';
+                            avatarElement.style.backgroundPosition = 'center';
+                            const currentDisplay = document.getElementById('currentProfileDisplay');
+                            if (currentDisplay) {
+                                currentDisplay.style.backgroundImage = `url('../../uploads/avatars/${data.profile_image}')`;
+                                currentDisplay.style.backgroundSize = 'cover';
+                                currentDisplay.style.backgroundPosition = 'center';
+                            }
+                        } else {
+                            const username = data.username || 'Super Admin';
+                            const firstLetter = username.charAt(0).toUpperCase();
+                            avatarElement.textContent = firstLetter;
+                            avatarElement.style.backgroundImage = 'none';
+                            const currentDisplay = document.getElementById('currentProfileDisplay');
+                            if (currentDisplay) {
+                                currentDisplay.textContent = firstLetter;
+                                currentDisplay.style.backgroundImage = 'none';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading profile:', error);
+                        // Fallback: show first letter of current username
+                        const usernameElement = document.getElementById('username');
+                        if (usernameElement) {
+                            const username = usernameElement.textContent || 'Super Admin';
+                            const firstLetter = username.charAt(0).toUpperCase();
+                            avatarElement.textContent = firstLetter;
+                            avatarElement.style.backgroundImage = 'none';
+                        }
+                    });
+            }
+
+            function openProfileModal() {
+                document.getElementById('profileModal').style.display = 'block';
+                loadProfile();
+            }
+
+            function closeProfileModal() {
+                document.getElementById('profileModal').style.display = 'none';
+                document.getElementById('profileForm').reset();
+            }
+
+            function removeProfile() {
+                showConfirm('Remove profile picture?', (confirmed) => {
+                    if (!confirmed) return;
+                    fetch('../../php/superadmin/remove_profile.php', { method: 'POST' })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showToast('Profile picture removed');
+                                loadProfile();
+                                closeProfileModal();
+                            } else {
+                                showToast(data.message || 'Failed to remove profile');
+                            }
+                        })
+                        .catch(() => showToast('Network error'));
+                });
+            }
+
+            // Profile form submission
+            document.getElementById('profileForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                fetch('../../php/superadmin/update_profile.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Profile updated successfully');
+                        loadProfile();
+                        closeProfileModal();
+                    } else {
+                        showToast(data.message || 'Failed to update profile');
+                    }
+                })
+                .catch(() => showToast('Network error'));
+            });
+
+            // Avatar button event listeners
+            document.getElementById('avatarOpen').addEventListener('click', openProfileModal);
+            document.getElementById('avatarRemove').addEventListener('click', removeProfile);
+
+            // Toast notifications
+            function showToast(message, type = 'success') {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+                toast.textContent = message;
+                container.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 100);
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => container.removeChild(toast), 300);
+                }, 3000);
+            }
+
+            // Confirm modal
+            function showConfirm(message, onConfirm) {
+                const modal = document.getElementById('confirmModal');
+                const messageEl = document.getElementById('confirmMessage');
+                const cancelBtn = document.getElementById('confirmCancel');
+                const okBtn = document.getElementById('confirmOk');
+                
+                messageEl.textContent = message;
+                modal.style.display = 'flex';
+                
+                const cleanup = () => {
+                    modal.style.display = 'none';
+                    cancelBtn.onclick = null;
+                    okBtn.onclick = null;
+                };
+                
+                cancelBtn.onclick = cleanup;
+                okBtn.onclick = () => {
+                    cleanup();
+                    onConfirm();
+                };
+            }
+
+            // Load departments for dropdown
+            async function loadDepartments() {
+                try {
+                    const response = await fetch('../../php/superadmin/departments_list.php');
+                    const data = await response.json();
+                    const select = document.getElementById('equipmentDepartment');
+                    select.innerHTML = '<option value="">Select Department</option>';
+                    
+                    if (data.success && data.departments) {
+                        data.departments.forEach(dept => {
+                            const option = document.createElement('option');
+                            option.value = dept.department_name;
+                            option.textContent = dept.department_name;
+                            select.appendChild(option);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Failed to load departments:', error);
+                }
+            }
+
+            // Load equipment list
+            async function loadEquipment() {
+                try {
+                    const response = await fetch('../../php/superadmin/equipment_list.php');
+                    const data = await response.json();
+                    const tbody = document.getElementById('equipmentTableBody');
+                    
+                    if (data.success && data.equipment) {
+                        tbody.innerHTML = data.equipment.map(item => `
+                            <tr>
+                                <td style="padding:8px;">
+                                    ${item.equipment_img ? 
+                                        `<img src="../../${item.equipment_img}" alt="${item.equipment_name}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">` : 
+                                        '<div style="width: 40px; height: 40px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #666; font-size: 10px;">No Image</div>'
+                                    }
+                                </td>
+                                <td style="padding:8px;">${item.equipment_name}</td>
+                                <td style="padding:8px;">${item.quantity || 1}</td>
+                                <td style="padding:8px;">${item.department}</td>
+                                <td style="padding:8px;"><span class="status-badge status-${item.status}">${item.status.replace('_', ' ').toUpperCase()}</span></td>
+                                <td style="padding:8px;">
+                                    <button class="btn-warning" onclick="openEditModal(${item.equipment_id}, '${item.equipment_name}', ${item.quantity || 1}, '${item.department}', '${item.status}', '${item.equipment_img || ''}')" style="padding:4px 8px; margin-right:4px;">Edit</button>
+                                    <button class="btn-danger" onclick="deleteEquipment(${item.equipment_id}, '${item.equipment_name}')" style="padding:4px 8px;">Delete</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #666;">No equipment found</td></tr>';
+                    }
+                } catch (error) {
+                    console.error('Failed to load equipment:', error);
+                    document.getElementById('equipmentTableBody').innerHTML = '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #800000;">Failed to load equipment</td></tr>';
+                }
+            }
+
+            // Open edit modal
+            window.openEditModal = function(id, name, quantity, department, status, imageUrl) {
+                const modal = document.getElementById('equipmentModal');
+                const form = document.getElementById('equipmentForm');
+                const title = document.getElementById('modalTitle');
+                const equipmentId = document.getElementById('equipmentId');
+                const formMode = document.getElementById('formMode');
+                const nameInput = document.getElementById('equipmentName');
+                const quantityInput = document.getElementById('equipmentQuantity');
+                const deptSelect = document.getElementById('equipmentDepartment');
+                const statusSelect = document.getElementById('equipmentStatus');
+                const imageInput = document.getElementById('equipmentImage');
+                const currentImagePreview = document.getElementById('currentImagePreview');
+                const currentImage = document.getElementById('currentImage');
+                const message = document.getElementById('formMessage');
+                
+                title.textContent = 'Edit Equipment';
+                formMode.value = 'edit';
+                equipmentId.value = id;
+                nameInput.value = name;
+                quantityInput.value = quantity;
+                deptSelect.value = department;
+                statusSelect.value = status;
+                imageInput.value = '';
+                message.textContent = '';
+                
+                // Show status dropdown for edit mode
+                document.getElementById('statusGroup').style.display = 'block';
+                
+                if (imageUrl) {
+                    currentImage.src = `../../${imageUrl}`;
+                    currentImagePreview.style.display = 'block';
+                } else {
+                    currentImagePreview.style.display = 'none';
+                }
+                
+                modal.style.display = 'flex';
+            };
+
+            // Delete equipment
+            window.deleteEquipment = function(id, name) {
+                showConfirm(`Are you sure you want to delete "${name}"?`, async () => {
+                    try {
+                        const formData = new FormData();
+                        formData.append('equipment_id', id);
+                        
+                        const response = await fetch('../../php/superadmin/equipment_delete.php', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const data = await response.json();
+                        if (data.success) {
+                            showToast('Equipment deleted successfully');
+                            loadEquipment();
+                        } else {
+                            showToast(data.message || 'Failed to delete equipment', 'error');
+                        }
+                    } catch (error) {
+                        showToast('Network error', 'error');
+                    }
+                });
+            };
+
+            // Initialize
+            document.addEventListener('DOMContentLoaded', async function() {
+                if (!(await checkLogin())) return;
+                
+                await loadDepartments();
+                await loadEquipment();
+                // Set fallback avatar immediately
+                const avatarElement = document.getElementById('avatarCircle');
+                const usernameElement = document.getElementById('username');
+                if (avatarElement && usernameElement) {
+                    const username = usernameElement.textContent || 'Super Admin';
+                    const firstLetter = username.charAt(0).toUpperCase();
+                    avatarElement.textContent = firstLetter;
+                    avatarElement.style.backgroundImage = 'none';
+                }
+                // Load profile after a short delay to ensure DOM is ready
+                setTimeout(loadProfile, 100);
+                
+                // Modal controls
+                const modal = document.getElementById('equipmentModal');
+                const addBtn = document.getElementById('addEquipmentBtn');
+                const cancelBtn = document.getElementById('cancelBtn');
+                const closeBtn = document.querySelector('.close');
+                const form = document.getElementById('equipmentForm');
+                const message = document.getElementById('formMessage');
+                
+                // Add equipment button
+                addBtn.addEventListener('click', () => {
+                    document.getElementById('modalTitle').textContent = 'Add Equipment';
+                    document.getElementById('formMode').value = 'add';
+                    document.getElementById('equipmentId').value = '';
+                    form.reset();
+                    // Hide status dropdown for add mode (always available)
+                    document.getElementById('statusGroup').style.display = 'none';
+                    document.getElementById('equipmentStatusHidden').value = 'available';
+                    document.getElementById('equipmentQuantity').value = '1';
+                    document.getElementById('currentImagePreview').style.display = 'none';
+                    message.textContent = '';
+                    modal.style.display = 'flex';
+                });
+                
+                // Cancel button
+                cancelBtn.addEventListener('click', () => {
+                    modal.style.display = 'none';
+                    form.reset();
+                });
+                
+                // Close button
+                closeBtn.addEventListener('click', () => {
+                    modal.style.display = 'none';
+                    form.reset();
+                });
+                
+                // Modal backdrop click
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                        form.reset();
+                    }
+                });
+                
+                // File input display handler
+                const fileInput = document.getElementById('equipmentImage');
+                const fileText = document.getElementById('fileText');
+                const fileName = document.getElementById('fileName');
+                
+                fileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        fileText.style.display = 'none';
+                        fileName.textContent = file.name;
+                        fileName.style.display = 'inline';
+                    } else {
+                        fileText.style.display = 'inline';
+                        fileName.style.display = 'none';
+                    }
+                });
+
+                // Form submission
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    message.textContent = '';
+                    
+                    const formData = new FormData(form);
+                    const mode = formData.get('mode');
+                    const endpoint = mode === 'add' ? 'equipment_add.php' : 'equipment_update.php';
+                    
+                    try {
+                        const response = await fetch(`../../php/superadmin/${endpoint}`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const data = await response.json();
+                        if (data.success) {
+                            modal.style.display = 'none';
+                            form.reset();
+                            // Reset file input display
+                            fileText.style.display = 'inline';
+                            fileName.style.display = 'none';
+                            loadEquipment();
+                            showToast(mode === 'add' ? 'Equipment added successfully' : 'Equipment updated successfully');
+                        } else {
+                            console.error('Equipment operation failed:', data);
+                            message.style.color = '#800000';
+                            message.textContent = data.message || 'Operation failed';
+                            showToast(data.message || 'Operation failed', 'error');
+                        }
+                    } catch (error) {
+                        message.style.color = '#800000';
+                        message.textContent = 'Network error';
+                        showToast('Network error', 'error');
+                    }
+                });
+                
+                // Logout
+                document.getElementById('logoutBtn').addEventListener('click', () => {
+                    showConfirm('Are you sure you want to logout?', async () => {
+                        try {
+                            const response = await fetch('../../php/superadmin/logout.php', { method: 'POST' });
+                            if (response.ok) {
+                                showToast('Logged out successfully');
+                                setTimeout(() => {
+                                    window.location.href = 'super_admin_login.html';
+                                }, 1000);
+                            } else {
+                                showToast('Logout failed', 'error');
+                            }
+                        } catch (error) {
+                            showToast('Network error', 'error');
+                        }
+                    });
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

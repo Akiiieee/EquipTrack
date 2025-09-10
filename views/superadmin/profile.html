@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Profile - EquipTrack</title>
+    <link rel="stylesheet" href="../../css/superadmin/dashboard.css">
+</head>
+<body>
+    <header class="header" style="position:sticky; top:0; z-index:20;">
+        <div class="header-content">
+            <div class="logo"><h1>EquipTrack</h1></div>
+            <div class="user-info">
+                <div class="welcome">Welcome, <span id="username">Super Admin</span></div>
+                <a href="#" class="logout-btn" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </header>
+    <div style="max-width:1000px; margin:24px auto; padding:0 20px;">
+        <div class="form-card" style="display:grid; grid-template-columns:220px 1fr; gap:24px; align-items:start;">
+            <div style="text-align:center;">
+                <img id="avatar" src="" alt="Avatar" style="width:180px; height:180px; object-fit:cover; border-radius:50%; border:3px solid #ffe082; background:#f3f4f6;">
+                <form id="avatarForm" style="margin-top:12px;">
+                    <input type="file" name="avatar" accept="image/*" required>
+                    <div style="margin-top:8px; display:flex; gap:8px; justify-content:center;">
+                        <button type="submit" class="submit-btn">Upload</button>
+                    </div>
+                    <div class="message" id="avatarMsg"></div>
+                </form>
+            </div>
+            <div>
+                <h3 style="color:#800000; margin-bottom:12px;">Profile</h3>
+                <div style="display:grid; gap:10px;">
+                    <div><strong>Username:</strong> <span id="p_username">—</span></div>
+                    <div><strong>Email:</strong> <span id="p_email">—</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function(){
+            function logout(){ fetch('../../php/superadmin/logout.php', { method:'POST' }).then(()=>{ window.location.href='super_admin_login.html'; }); }
+            window.logout = logout;
+            function checkLogin(){
+                return fetch('../../php/superadmin/check_session.php').then(r=>r.json()).then(d=>{ if(!d.logged_in){ window.location.href='super_admin_login.html'; } else { document.getElementById('username').textContent = d.username || 'Super Admin'; } });
+            }
+            function loadProfile(){
+                fetch('../../php/superadmin/super_admin_profile_get.php')
+                    .then(r=>r.json())
+                    .then(data=>{
+                        if (!data.success) return;
+                        const p = data.profile || {};
+                        document.getElementById('p_username').textContent = p.username || '—';
+                        document.getElementById('p_email').textContent = p.email || '—';
+                        document.getElementById('avatar').src = p.avatar_url || 'https://via.placeholder.com/180x180?text=Avatar';
+                    });
+            }
+            document.addEventListener('DOMContentLoaded', function(){
+                checkLogin().then(loadProfile);
+                const form = document.getElementById('avatarForm');
+                const msg = document.getElementById('avatarMsg');
+                form.addEventListener('submit', function(e){
+                    e.preventDefault();
+                    msg.textContent='';
+                    const fd = new FormData(form);
+                    fetch('../../php/superadmin/super_admin_avatar_upload.php', { method:'POST', body: fd })
+                        .then(r=>r.json())
+                        .then(res=>{
+                            if (res.success){ msg.style.color='green'; msg.textContent='Updated'; document.getElementById('avatar').src = res.avatar_url; }
+                            else { msg.style.color='#800000'; msg.textContent = res.message || 'Upload failed'; }
+                        })
+                        .catch(()=>{ msg.style.color='#800000'; msg.textContent='Network error'; });
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
+
+

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Admin Dashboard - EquipTrack</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
     <link rel="stylesheet" href="../../css/superadmin/dashboard.css">
     <style>
         * {
@@ -44,6 +45,21 @@
             align-items: center;
             gap: 20px;
         }
+        .avatar-circle { width:36px; height:36px; border-radius:50%; background:#ffd60a; color:#800000; display:flex; align-items:center; justify-content:center; font-weight:800; cursor:pointer; overflow:hidden; background-size:cover; background-position:center; position:relative; }
+        .avatar-actions { position:absolute; top:100%; right:0; margin-top:8px; display:none; gap:6px; }
+        .avatar-wrap { position:relative; display:inline-block; }
+        .avatar-wrap:hover .avatar-actions { display:flex; }
+        .icon-btn { width:34px; height:34px; border-radius:8px; background:#fff; color:#800000; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.15); cursor:pointer; border:1px solid #ffd60a; }
+        .icon-btn:hover { transform: translateY(-1px); }
+        /* Modal profile styles */
+        .profile-modal { position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; }
+        .profile-avatar { width:160px; height:160px; border-radius:50%; background:#f3f4f6; border:3px solid #ffe082; background-size:cover; background-position:center; position:relative; margin:0 auto; }
+        .overlay-actions { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(0,0,0,.35); opacity:0; transition:opacity .15s ease; border-radius:50%; }
+        .profile-avatar:hover .overlay-actions { opacity:1; }
+        .overlay-icon { width:42px; height:42px; border-radius:10px; background:#fff; color:#800000; display:flex; align-items:center; justify-content:center; border:1px solid #ffd60a; box-shadow:0 2px 8px rgba(0,0,0,.15); cursor:pointer; }
+        /* Generic confirm modal */
+        .confirm-modal { position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; }
+        .toast { background:#800000; color:#fff; padding:10px 14px; border-radius:8px; box-shadow:0 6px 16px rgba(0,0,0,.2); display:flex; align-items:center; gap:10px; opacity:0.95; }
         
         .welcome {
             font-size: 16px;
@@ -242,12 +258,18 @@
 <body>
     <header class="header" style="position:sticky; top:0; z-index:20;">
         <div class="header-content">
-            <div class="logo">
+            <div class="logo" style="display:flex; align-items:center; gap:12px;">
                 <h1>EquipTrack</h1>
             </div>
             <div class="user-info">
-                <div class="welcome">
-                    Welcome, <span id="username">Super Admin</span>
+                <div class="welcome"><span id="username">Super Admin</span>
+                </div>
+                <div class="avatar-wrap">
+                    <div id="avatarCircle" class="avatar-circle" title="Profile"></div>
+                    <div class="avatar-actions">
+                        <button id="avatarOpen" class="icon-btn" title="Upload" aria-label="Upload">📷</button>
+                        <button id="avatarRemove" class="icon-btn" title="Remove" aria-label="Remove">🗑️</button>
+                    </div>
                 </div>
                 <a href="#" class="logout-btn" onclick="logout()">Logout</a>
             </div>
@@ -271,6 +293,10 @@
                 <a href="departments.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">
                     Departments
                     <span style="margin-left:auto; background:#ffd60a; color:#800000; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:700;" id="badgeTotalDepartments">0</span>
+                </a>
+                <a href="equipment.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">
+                    Equipment
+                    <span style="margin-left:auto; background:#ffd60a; color:#800000; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:700;" id="badgeTotalEquipment">0</span>
                 </a>
             </nav>
         </aside>
@@ -306,6 +332,13 @@
                 </div>
             </div>
             <div class="stat-card">
+                <div class="stat-icon">🔧</div>
+                <div class="stat-body">
+                    <div class="stat-number" id="totalEquipment">-</div>
+                    <div class="stat-label">Equipment</div>
+                </div>
+            </div>
+            <div class="stat-card">
                 <div class="stat-icon">⚡</div>
                 <div class="stat-body">
                     <div class="stat-number" id="activeSessions">-</div>
@@ -333,21 +366,25 @@
                         <div style="margin-top:8px"><a href="#" class="card-btn" onclick="document.getElementById('addUserCard').scrollIntoView({behavior:'smooth'});">Add User</a></div>
                     </div>
                 </div>
+                <div class="qa-card">
+                    <div class="qa-icon">DP</div>
+                    <div>
+                        <div class="qa-title">Departments</div>
+                        <div class="qa-desc">Add, rename, or remove departments.</div>
+                        <div style="margin-top:8px"><a href="departments.html" class="card-btn">Open</a></div>
+                    </div>
+                </div>
+                <div class="qa-card">
+                    <div class="qa-icon">EQ</div>
+                    <div>
+                        <div class="qa-title">Equipment</div>
+                        <div class="qa-desc">Add, edit, or remove equipment with images.</div>
+                        <div style="margin-top:8px"><a href="equipment.html" class="card-btn">Open</a></div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        
-
-        
-
-        <div class="quick-actions">
-            <h3>Quick Actions</h3>
-            <div class="action-buttons">
-                <a href="add_super_admin.html" class="action-btn">Add New Admin</a>
-                <a href="users.html" class="action-btn">Manage Users</a>
-                <a href="departments.html" class="action-btn">Manage Departments</a>
-            </div>
-        </div>
 
         <div class="activity" style="margin-top:24px;">
             <h3>Recent Activity</h3>
@@ -360,7 +397,40 @@
     </div>
 
     <div id="toastContainer"></div>
-    <script src="../../js/superadmin/dashboard.js"></script>
+    <!-- Profile Modal (shows profile; hover over avatar to reveal actions) -->
+    <div id="profileModal" class="profile-modal">
+        <div class="form-card" style="width:100%; max-width:520px;">
+            <h3 style="color:#800000; margin-bottom:12px;">Profile</h3>
+            <div class="profile-avatar" id="profileAvatar">
+                <div class="overlay-actions">
+                    <button id="pmUpload" class="overlay-icon" title="Upload" aria-label="Upload">📷</button>
+                    <button id="pmRemove" class="overlay-icon" title="Remove" aria-label="Remove">🗑️</button>
+                </div>
+            </div>
+            <div style="text-align:center; margin-top:10px; font-weight:600; color:#800000;" id="pmUsername">—</div>
+            <div style="text-align:center; color:#555;" id="pmEmail">—</div>
+            <form id="pmUploadForm" style="margin-top:12px; display:none;">
+                <input type="file" name="avatar" accept="image/*" required>
+            </form>
+            <div class="message" id="pmMsg" style="margin-top:10px;"></div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
+                <button type="button" id="pmClose" class="submit-btn" style="background:#6c757d;">Close</button>
+            </div>
+        </div>
+    </div>
+    <!-- Reusable Confirm Modal & Toast Container -->
+    <div id="confirmModal" class="confirm-modal">
+        <div class="form-card" style="width:100%; max-width:420px;">
+            <h3 id="confirmTitle" style="color:#800000; margin-bottom:10px;">Please Confirm</h3>
+            <div id="confirmMessage" style="color:#333;">Are you sure?</div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
+                <button type="button" id="confirmCancel" class="submit-btn" style="background:#6c757d;">Cancel</button>
+                <button type="button" id="confirmOk" class="submit-btn">OK</button>
+            </div>
+        </div>
+    </div>
+    <div id="toastContainer" style="position: fixed; top: 18px; right: 18px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+    
     <script>
         let previousActiveIds = new Set();
         function showToast(username, role) {
@@ -380,6 +450,20 @@
                         window.location.href = 'super_admin_login.html';
                     } else {
                         document.getElementById('username').textContent = data.username;
+                        // Set default avatar initial
+                        const av = document.getElementById('avatarCircle');
+                        if (av) {
+                            const initial = (data.username || 'S').toString().trim().charAt(0).toUpperCase();
+                            av.textContent = initial || 'S';
+                            // Try to load actual uploaded avatar
+                            fetch('../../php/superadmin/super_admin_profile_get.php')
+                                .then(r=>r.json())
+                                .then(p=>{
+                                    const url = p && p.profile ? (p.profile.avatar_url || '') : '';
+                                    if (url) { av.textContent=''; av.style.backgroundImage = 'url(' + url + ')'; }
+                                })
+                                .catch(()=>{});
+                        }
                     }
                 })
                 .catch(error => {
@@ -389,23 +473,49 @@
         }
 
         // Logout function
-        function logout() {
-            fetch('../../php/superadmin/logout.php', {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.href = 'super_admin_login.html';
-                } else {
-                    alert('Error logging out. Please try again.');
+        function openConfirm(message, title='Please Confirm'){
+            return new Promise(resolve => {
+                const cm = document.getElementById('confirmModal');
+                const msg = document.getElementById('confirmMessage');
+                const ttl = document.getElementById('confirmTitle');
+                const ok = document.getElementById('confirmOk');
+                const cancel = document.getElementById('confirmCancel');
+                ttl.textContent = title;
+                msg.textContent = message;
+                function cleanup(result){
+                    cm.style.display='none';
+                    ok.removeEventListener('click', okH);
+                    cancel.removeEventListener('click', cancelH);
+                    cm.removeEventListener('click', backdropH);
+                    resolve(result);
                 }
-            })
-            .catch(error => {
-                console.error('Logout error:', error);
-                // Force redirect even if logout fails
-                window.location.href = 'super_admin_login.html';
+                function okH(){ cleanup(true); }
+                function cancelH(){ cleanup(false); }
+                function backdropH(e){ if(e.target===cm) cleanup(false); }
+                ok.addEventListener('click', okH);
+                cancel.addEventListener('click', cancelH);
+                cm.addEventListener('click', backdropH);
+                cm.style.display='flex';
             });
+        }
+        function showToast(text){
+            const c = document.getElementById('toastContainer');
+            const el = document.createElement('div');
+            el.className = 'toast';
+            el.textContent = text;
+            c.appendChild(el);
+            setTimeout(()=>{ el.remove(); }, 2500);
+        }
+        async function logout() {
+            const ok = await openConfirm('Are you sure you want to logout?', 'Logout');
+            if (!ok) return;
+            fetch('../../php/superadmin/logout.php', { method: 'POST' })
+              .then(r=>r.json())
+              .then(d=>{
+                if (d.success){ showToast('Logged out'); setTimeout(()=>{ window.location.href='super_admin_login.html'; }, 600); }
+                else { showToast(d.message||'Logout failed'); }
+              })
+              .catch(()=>{ showToast('Network error'); setTimeout(()=>{ window.location.href='super_admin_login.html'; }, 800); });
         }
 
         // Load dashboard data
@@ -429,6 +539,20 @@
                 })
                 .catch(err => {
                     console.error('Count fetch error:', err);
+                });
+            
+            // Load equipment count
+            fetch('../../php/superadmin/get_equipment_count.php')
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.success) {
+                        document.getElementById('totalEquipment').textContent = String(data.equipment ?? 0);
+                        const equipmentBadge = document.getElementById('badgeTotalEquipment');
+                        if (equipmentBadge) equipmentBadge.textContent = String(data.equipment ?? 0);
+                    }
+                })
+                .catch(err => {
+                    console.error('Equipment count fetch error:', err);
                 });
             // Fetch departments count explicitly
             fetch('../../php/superadmin/departments_list.php')
@@ -536,6 +660,110 @@
                         });
                 });
             }
+
+            // Avatar modal logic
+            const profileModal = document.getElementById('profileModal');
+            const pmUsername = document.getElementById('pmUsername');
+            const pmEmail = document.getElementById('pmEmail');
+            const pmAvatar = document.getElementById('profileAvatar');
+            const pmUploadBtn = document.getElementById('pmUpload');
+            const pmRemoveBtn = document.getElementById('pmRemove');
+            const pmUploadForm = document.getElementById('pmUploadForm');
+            const pmMsg = document.getElementById('pmMsg');
+            const pmClose = document.getElementById('pmClose');
+            const avatarCircle = document.getElementById('avatarCircle');
+            const avatarOpen = document.getElementById('avatarOpen');
+            const avatarRemove = document.getElementById('avatarRemove');
+            function openProfileModal(){
+                pmMsg.textContent='';
+                // Load live profile details
+                fetch('../../php/superadmin/super_admin_profile_get.php')
+                    .then(r=>r.json())
+                    .then(p=>{
+                        const prof = p && p.profile ? p.profile : {};
+                        pmUsername.textContent = prof.username || '—';
+                        pmEmail.textContent = prof.email || '—';
+                        const url = prof.avatar_url || '';
+                        pmAvatar.style.backgroundImage = url ? ('url(' + url + ')') : '';
+                    })
+                    .catch(()=>{});
+                profileModal.style.display='flex';
+            }
+            if (avatarOpen) { avatarOpen.addEventListener('click', openProfileModal); }
+            // Also open when clicking avatar circle itself
+            if (avatarCircle) { avatarCircle.addEventListener('click', openProfileModal); }
+            if (avatarRemove) {
+                avatarRemove.addEventListener('click', async function(){
+                    const ok = await openConfirm('Remove profile photo?', 'Remove Photo');
+                    if (!ok) return;
+                    fetch('../../php/superadmin/super_admin_avatar_delete.php', { method:'POST' })
+                        .then(r=>r.json())
+                        .then(res=>{
+                            if (res.success){
+                                // Reset to initial
+                                avatarCircle.style.backgroundImage='';
+                                fetch('../../php/superadmin/check_session.php').then(r=>r.json()).then(d=>{
+                                    const initial = (d.username || 'S').toString().trim().charAt(0).toUpperCase();
+                                    avatarCircle.textContent = initial || 'S';
+                                    // Also update modal avatar
+                                    pmAvatar.style.backgroundImage='';
+                                }).catch(()=>{ avatarCircle.textContent='S'; });
+                                showToast('Photo removed');
+                            } else {
+                                showToast(res.message||'Remove failed');
+                            }
+                        })
+                        .catch(()=>showToast('Network error'));
+                });
+            }
+            pmClose.addEventListener('click', ()=>{ profileModal.style.display='none'; });
+            profileModal.addEventListener('click', (e)=>{ if(e.target===profileModal){ profileModal.style.display='none'; }});
+            pmUploadBtn.addEventListener('click', ()=>{ pmUploadForm.querySelector('input[type="file"]').click(); });
+            pmUploadForm.addEventListener('change', function(){
+                pmMsg.textContent='';
+                const fd = new FormData(pmUploadForm);
+                fetch('../../php/superadmin/super_admin_avatar_upload.php', { method:'POST', body: fd })
+                    .then(r=>r.json())
+                    .then(res=>{
+                        if (res.success){
+                            // Update avatar in modal and header immediately
+                            pmAvatar.style.backgroundImage = 'url(' + res.avatar_url + ')';
+                            avatarCircle.textContent='';
+                            avatarCircle.style.backgroundImage = 'url(' + res.avatar_url + ')';
+                            pmUploadForm.reset();
+                            pmMsg.style.color='green';
+                            pmMsg.textContent='Updated';
+                        } else {
+                            pmMsg.style.color='#800000';
+                            pmMsg.textContent = res.message || 'Upload failed';
+                        }
+                    })
+                    .catch(()=>{ pmMsg.style.color='#800000'; pmMsg.textContent='Network error'; });
+            });
+            pmRemoveBtn.addEventListener('click', async function(){
+                const ok = await openConfirm('Remove profile photo?', 'Remove Photo');
+                if (!ok) return;
+                fetch('../../php/superadmin/super_admin_avatar_delete.php', { method:'POST' })
+                    .then(r=>r.json())
+                    .then(res=>{
+                        if (res.success){
+                            pmAvatar.style.backgroundImage='';
+                            avatarCircle.style.backgroundImage='';
+                            fetch('../../php/superadmin/check_session.php').then(r=>r.json()).then(d=>{
+                                const initial = (d.username || 'S').toString().trim().charAt(0).toUpperCase();
+                                avatarCircle.textContent = initial || 'S';
+                            }).catch(()=>{ avatarCircle.textContent='S'; });
+                            pmMsg.style.color='green';
+                            pmMsg.textContent='Removed';
+                            showToast('Photo removed');
+                        } else {
+                            pmMsg.style.color='#800000';
+                            pmMsg.textContent = res.message || 'Remove failed';
+                            showToast('Remove failed');
+                        }
+                    })
+                    .catch(()=>{ pmMsg.style.color='#800000'; pmMsg.textContent='Network error'; showToast('Network error'); });
+            });
         });
     </script>
 </body>

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Admin Login - EquipTrack</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
     <style>
         * {
             margin: 0;
@@ -13,7 +14,7 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #800000 0%, #660000 50%, #4d0000 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -25,11 +26,12 @@
             background: white;
             padding: 40px;
             border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
             width: 100%;
             max-width: 400px;
             position: relative;
             overflow: hidden;
+            border: 2px solid #ffd60a;
         }
         
         .login-container::before {
@@ -38,13 +40,13 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 6px;
+            background: linear-gradient(90deg, #800000, #ffd60a, #800000);
         }
         
         h1 {
             text-align: center;
-            color: #333;
+            color: #800000;
             margin-bottom: 30px;
             font-size: 28px;
             font-weight: 600;
@@ -58,7 +60,7 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #555;
+            color: #800000;
             font-size: 14px;
         }
         
@@ -73,17 +75,22 @@
             background-color: #f8f9fa;
         }
         
+        input[type="text"]:hover,
+        input[type="password"]:hover {
+            border-color: #ffd60a;
+        }
+        
         input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #800000;
             background-color: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.1);
         }
         
         button[type="submit"] {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #800000 0%, #660000 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -97,7 +104,7 @@
         
         button[type="submit"]:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 25px rgba(128, 0, 0, 0.3);
         }
         
         button[type="submit"]:disabled {
@@ -134,7 +141,7 @@
         }
         
         .login-links a {
-            color: #667eea;
+            color: #800000;
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
@@ -179,7 +186,11 @@
 </head>
 <body>
     <div class="login-container">
-    <h1>Super Admin Login</h1>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #800000; font-size: 32px; margin-bottom: 5px;">EquipTrack</h1>
+            <p style="color: #666; font-size: 14px; margin: 0;">Super Admin Portal</p>
+        </div>
+        <h2 style="text-align: center; color: #800000; margin-bottom: 30px; font-size: 24px; font-weight: 600;">Login</h2>
         <form id="superAdminLoginForm">
             <div class="form-group">
                 <label for="username">Username:</label>
@@ -203,6 +214,75 @@
         </div>
     </div>
     
-    <script src="../../js/superadmin/super_admin_login.js"></script>
+    <script>
+        (function(){
+            const form = document.getElementById('superAdminLoginForm');
+            if (!form) { return; }
+
+            const submitButton = form.querySelector('button[type="submit"]');
+
+            function setSubmitting(isSubmitting) {
+                if (!submitButton) { return; }
+                submitButton.disabled = isSubmitting;
+                submitButton.textContent = isSubmitting ? 'Logging in…' : 'Login';
+            }
+
+            function ensureMessageEl() {
+                let el = document.getElementById('loginMessage');
+                if (!el) {
+                    el = document.createElement('div');
+                    el.id = 'loginMessage';
+                    el.className = 'message';
+                    form.parentElement.insertBefore(el, form.nextSibling);
+                }
+                return el;
+            }
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const msg = ensureMessageEl();
+                msg.textContent = '';
+                msg.classList.remove('success', 'error');
+
+                const formData = new FormData(form);
+                setSubmitting(true);
+
+                fetch('../../php/superadmin/super_admin_login.php', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin'
+                })
+                .then(r => r.text())
+                .then(t => {
+                    let data;
+                    try {
+                        data = JSON.parse(t);
+                    } catch (err) {
+                        console.error('Parse error', err, t);
+                        msg.classList.add('error');
+                        msg.textContent = 'Server error';
+                        return;
+                    }
+
+                    if (data && data.success) {
+                        msg.classList.add('success');
+                        msg.textContent = 'Login successful';
+                        const redirectUrl = (data.redirect || '../../views/superadmin/dashboard.html');
+                        setTimeout(() => { window.location.href = redirectUrl; }, 600);
+                    } else {
+                        msg.classList.add('error');
+                        msg.textContent = (data && data.message) ? data.message : 'Login failed';
+                    }
+                })
+                .catch(err => {
+                    console.error('Login error', err);
+                    const msg = ensureMessageEl();
+                    msg.classList.add('error');
+                    msg.textContent = 'Network error';
+                })
+                .finally(() => setSubmitting(false));
+            });
+        })();
+    </script>
 </body>
 </html>
