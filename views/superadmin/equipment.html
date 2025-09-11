@@ -36,13 +36,20 @@
                 <a href="users.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Users</a>
                 <a href="departments.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Departments</a>
                 <a href="equipment.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#800000; text-decoration:none; border-radius:8px; background:#fff3bf;">Equipment</a>
+                <a href="students.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Students <span style="margin-left:auto; background:#ffd60a; color:#800000; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:700;" id="badgeStudents">0</span></a>
             </nav>
         </aside>
         <main>
             <div class="form-card" id="equipmentCard" style="margin-top:0;">
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 15px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 15px;">
                     <h3 style="color:#800000; margin:0;">Equipment Management</h3>
-                    <button id="addEquipmentBtn" class="submit-btn" style="background:#ffd60a; color:#800000;">Add Equipment</button>
+                    <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+                        <input id="equipmentSearch" type="text" placeholder="Search…" style="padding:10px 12px; border:2px solid #e9ecef; border-radius:8px; width:220px;">
+                        <select id="equipmentDeptFilter" style="padding:10px 12px; border:2px solid #e9ecef; border-radius:8px;">
+                            <option value="">All Departments</option>
+                        </select>
+                        <button id="addEquipmentBtn" class="submit-btn" style="background:#ffd60a; color:#800000;">Add Equipment</button>
+                    </div>
                 </div>
                 <div id="equipmentTable" style="overflow:auto;">
                     <table style="width:100%; border-collapse: collapse;" class="equipment-table">
@@ -371,7 +378,7 @@
                 }
             }
 
-            // Load equipment list
+            let allEquipment = [];
             async function loadEquipment() {
                 try {
                     const response = await fetch('../../php/superadmin/equipment_list.php');
@@ -379,7 +386,8 @@
                     const tbody = document.getElementById('equipmentTableBody');
                     
                     if (data.success && data.equipment) {
-                        tbody.innerHTML = data.equipment.map(item => `
+                        allEquipment = data.equipment;
+                        const rows = allEquipment.map(item => `
                             <tr>
                                 <td style="padding:8px;">
                                     ${item.equipment_img ? 
@@ -397,6 +405,7 @@
                                 </td>
                             </tr>
                         `).join('');
+                        tbody.innerHTML = rows || '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #666;">No equipment found</td></tr>';
                     } else {
                         tbody.innerHTML = '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #666;">No equipment found</td></tr>';
                     }
@@ -404,6 +413,35 @@
                     console.error('Failed to load equipment:', error);
                     document.getElementById('equipmentTableBody').innerHTML = '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #800000;">Failed to load equipment</td></tr>';
                 }
+            }
+            function applyEquipmentFilters(){
+                const q = (document.getElementById('equipmentSearch').value||'').toLowerCase().trim();
+                const dept = document.getElementById('equipmentDeptFilter').value;
+                const tbody = document.getElementById('equipmentTableBody');
+                const filtered = (allEquipment||[]).filter(item=>{
+                    if (dept && String(item.department||'') !== dept) return false;
+                    if (!q) return true;
+                    const parts = [item.equipment_name, item.department, item.status].map(v=>String(v||'').toLowerCase());
+                    return parts.some(p=>p.includes(q));
+                });
+                tbody.innerHTML = filtered.map(item => `
+                    <tr>
+                        <td style="padding:8px;">
+                            ${item.equipment_img ? 
+                                `<img src="../../${item.equipment_img}" alt="${item.equipment_name}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">` : 
+                                '<div style="width: 40px; height: 40px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #666; font-size: 10px;">No Image</div>'
+                            }
+                        </td>
+                        <td style="padding:8px;">${item.equipment_name}</td>
+                        <td style="padding:8px;">${item.quantity || 1}</td>
+                        <td style="padding:8px;">${item.department}</td>
+                        <td style="padding:8px;"><span class="status-badge status-${item.status}">${item.status.replace('_', ' ').toUpperCase()}</span></td>
+                        <td style="padding:8px;">
+                            <button class="btn-warning" onclick="openEditModal(${item.equipment_id}, '${item.equipment_name}', ${item.quantity || 1}, '${item.department}', '${item.status}', '${item.equipment_img || ''}')" style="padding:4px 8px; margin-right:4px;">Edit</button>
+                            <button class="btn-danger" onclick="deleteEquipment(${item.equipment_id}, '${item.equipment_name}')" style="padding:4px 8px;">Delete</button>
+                        </td>
+                    </tr>
+                `).join('') || '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #666;">No equipment found</td></tr>';
             }
 
             // Open edit modal
@@ -476,6 +514,14 @@
                 
                 await loadDepartments();
                 await loadEquipment();
+                // Populate department filter
+                fetch('../../php/superadmin/departments_list.php').then(r=>r.json()).then(d=>{
+                    const sel = document.getElementById('equipmentDeptFilter');
+                    const opts = (d.departments||[]).map(x=>`<option value="${String(x.department_name).replace(/"/g,'&quot;')}">${x.department_name}</option>`).join('');
+                    sel.insertAdjacentHTML('beforeend', opts);
+                }).catch(()=>{});
+                document.getElementById('equipmentSearch').addEventListener('input', applyEquipmentFilters);
+                document.getElementById('equipmentDeptFilter').addEventListener('change', applyEquipmentFilters);
                 // Set fallback avatar immediately
                 const avatarElement = document.getElementById('avatarCircle');
                 const usernameElement = document.getElementById('username');
@@ -487,6 +533,9 @@
                 }
                 // Load profile after a short delay to ensure DOM is ready
                 setTimeout(loadProfile, 100);
+                
+                // Load student count badge
+                fetch('../../php/superadmin/get_student_count.php').then(r=>r.json()).then(d=>{ const b=document.getElementById('badgeStudents'); if(b && d && d.success){ b.textContent = String(d.students||0); }}).catch(()=>{});
                 
                 // Modal controls
                 const modal = document.getElementById('equipmentModal');

@@ -35,13 +35,20 @@
                 <a href="users.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#800000; text-decoration:none; border-radius:8px; background:#fff3bf;">Users</a>
                 <a href="departments.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Departments</a>
                 <a href="equipment.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Equipment</a>
+                <a href="students.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Students <span style="margin-left:auto; background:#ffd60a; color:#800000; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:700;" id="badgeStudents">0</span></a>
             </nav>
         </aside>
         <main>
             <div class="form-card" id="manageUsersCard" style="margin-top:0;">
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 15px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 15px;">
                     <h3 style="color:#800000; margin:0;">Manage Users</h3>
-                    <button id="openAddUser" class="submit-btn" style="background:#ffd60a; color:#800000;">Add User</button>
+                    <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+                        <input id="userSearch" type="text" placeholder="Search…" style="padding:10px 12px; border:2px solid #e9ecef; border-radius:8px; width:220px;">
+                        <select id="userDeptFilter" style="padding:10px 12px; border:2px solid #e9ecef; border-radius:8px;">
+                            <option value="">All Departments</option>
+                        </select>
+                        <button id="openAddUser" class="submit-btn" style="background:#ffd60a; color:#800000;">Add User</button>
+                    </div>
                 </div>
                 <div id="usersTable" style="overflow:auto;">
                     <table style="width:100%; border-collapse: collapse;">
@@ -196,15 +203,12 @@
             // Expose edit modal opener in this closure
             let openEditModal; // will be assigned after modal is created
 
-            function loadUsers(){
+            let allUsers = [];
+            function renderUsers(rows){
                 const body = document.getElementById('usersBody');
-                fetch('../../php/superadmin/users_list.php')
-                    .then(r=>r.json())
-                    .then(data=>{
-                        if (!data.success) { body.innerHTML = '<tr><td colspan="5" style="padding:10px; color:#800000;">Failed to load users</td></tr>'; return; }
-                        const rows = (data.users||[]).map(u=>{
-                            const safe = s=>String(s||'').replace(/</g,'&lt;');
-                            return `<tr data-user='${JSON.stringify({id:u.user_id,username:u.username,email:u.email,role:u.role,department:u.department}).replace(/'/g,"&apos;")}'>
+                const safe = s=>String(s||'').replace(/</g,'&lt;');
+                const rowsHtml = (rows||[]).map(u=>`
+                            <tr data-user='${JSON.stringify({id:u.user_id,username:u.username,email:u.email,role:u.role,department:u.department}).replace(/'/g,"&apos;")}'>
                                 <td style="padding:8px;">${safe(u.username)}</td>
                                 <td style="padding:8px;">${safe(u.email)}</td>
                                 <td style="padding:8px; text-transform:uppercase;">${safe(u.role)}</td>
@@ -213,29 +217,36 @@
                                     <button data-id="${u.user_id}" class="editBtn" style="background:#ffd60a;color:#800000;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;">Edit</button>
                                     <button data-id="${u.user_id}" class="deleteBtn" style="background:#dc3545;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;">Delete</button>
                                 </td>
-                            </tr>`;
-                        }).join('');
-                        body.innerHTML = rows || '<tr><td colspan="5" style="padding:10px; color:#666;">No users</td></tr>';
-                        body.querySelectorAll('.editBtn').forEach(btn=>{
-                            btn.addEventListener('click', function(){
-                                const tr = this.closest('tr');
-                                if (!tr) return;
-                                const info = JSON.parse(tr.getAttribute('data-user').replace(/&apos;/g,"'"));
-                                openEditModal(info);
-                            });
-                        });
-                        body.querySelectorAll('.deleteBtn').forEach(btn=>{
-                            btn.addEventListener('click', async function(){
-                                const id = this.getAttribute('data-id');
-                                const ok = await openConfirm('Delete this user?', 'Delete User');
-                                if (!ok) return;
-                                const fd = new FormData(); fd.append('user_id', id);
-                                fetch('../../php/superadmin/user_delete.php', { method:'POST', body:fd })
-                                    .then(r=>r.json())
-                                    .then(res=>{ if(res.success){ showToast('User deleted'); loadUsers(); } else { showToast(res.message||'Delete failed'); } })
-                                    .catch(()=>showToast('Network error'));
-                            });
-                        });
+                            </tr>`).join('');
+                body.innerHTML = rowsHtml || '<tr><td colspan="5" style="padding:10px; color:#666;">No users</td></tr>';
+                body.querySelectorAll('.editBtn').forEach(btn=>{
+                    btn.addEventListener('click', function(){
+                        const tr = this.closest('tr');
+                        const info = JSON.parse(tr.getAttribute('data-user').replace(/&apos;/g,"'"));
+                        openEditModal(info);
+                    });
+                });
+                body.querySelectorAll('.deleteBtn').forEach(btn=>{
+                    btn.addEventListener('click', async function(){
+                        const id = this.getAttribute('data-id');
+                        const ok = await openConfirm('Delete this user?', 'Delete User');
+                        if (!ok) return;
+                        const fd = new FormData(); fd.append('user_id', id);
+                        fetch('../../php/superadmin/user_delete.php', { method:'POST', body:fd })
+                            .then(r=>r.json())
+                            .then(res=>{ if(res.success){ showToast('User deleted'); loadUsers(); } else { showToast(res.message||'Delete failed'); } })
+                            .catch(()=>showToast('Network error'));
+                    });
+                });
+            }
+            function loadUsers(){
+                const body = document.getElementById('usersBody');
+                fetch('../../php/superadmin/users_list.php')
+                    .then(r=>r.json())
+                    .then(data=>{
+                        if (!data.success) { body.innerHTML = '<tr><td colspan="5" style="padding:10px; color:#800000;">Failed to load users</td></tr>'; return; }
+                        allUsers = data.users||[];
+                        renderUsers(allUsers);
                     })
                     .catch(()=>{ body.innerHTML = '<tr><td colspan="5" style="padding:10px; color:#800000;">Network error</td></tr>'; });
             }
@@ -362,7 +373,31 @@
                     }
                     // Load profile after a short delay to ensure DOM is ready
                     setTimeout(loadProfile, 100);
+                    // Load student count badge
+                    fetch('../../php/superadmin/get_student_count.php').then(r=>r.json()).then(d=>{ const b=document.getElementById('badgeStudents'); if(b && d && d.success){ b.textContent = String(d.students||0); }}).catch(()=>{});
+                    // Populate department filter
+                    fetch('../../php/superadmin/departments_list.php').then(r=>r.json()).then(d=>{
+                        const sel = document.getElementById('userDeptFilter');
+                        const opts = (d.departments||[]).map(x=>`<option value="${String(x.department_name).replace(/"/g,'&quot;')}">${x.department_name}</option>`).join('');
+                        sel.insertAdjacentHTML('beforeend', opts);
+                    }).catch(()=>{});
                 });
+                // Hook search and filter
+                const userSearch = document.getElementById('userSearch');
+                const userDeptFilter = document.getElementById('userDeptFilter');
+                function applyUserFilters(){
+                    const q = (userSearch.value||'').toLowerCase().trim();
+                    const dept = userDeptFilter.value;
+                    const filtered = (allUsers||[]).filter(u=>{
+                        if (dept && String(u.department||'') !== dept) return false;
+                        if (!q) return true;
+                        const parts = [u.username, u.email, u.role, u.department].map(v=>String(v||'').toLowerCase());
+                        return parts.some(p=>p.includes(q));
+                    });
+                    renderUsers(filtered);
+                }
+                userSearch.addEventListener('input', applyUserFilters);
+                userDeptFilter.addEventListener('change', applyUserFilters);
                 const modal = document.getElementById('addUserModal');
                 const openBtn = document.getElementById('openAddUser');
                 const cancelBtn = document.getElementById('cancelAddUser');

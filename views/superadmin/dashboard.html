@@ -298,6 +298,10 @@
                     Equipment
                     <span style="margin-left:auto; background:#ffd60a; color:#800000; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:700;" id="badgeTotalEquipment">0</span>
                 </a>
+                <a href="students.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">
+                    Students
+                    <span style="margin-left:auto; background:#ffd60a; color:#800000; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:700;" id="badgeTotalStudents">0</span>
+                </a>
             </nav>
         </aside>
         <main>
@@ -336,6 +340,13 @@
                 <div class="stat-body">
                     <div class="stat-number" id="totalEquipment">-</div>
                     <div class="stat-label">Equipment</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎓</div>
+                <div class="stat-body">
+                    <div class="stat-number" id="totalStudents">-</div>
+                    <div class="stat-label">Students</div>
                 </div>
             </div>
             <div class="stat-card">
@@ -380,6 +391,14 @@
                         <div class="qa-title">Equipment</div>
                         <div class="qa-desc">Add, edit, or remove equipment with images.</div>
                         <div style="margin-top:8px"><a href="equipment.html" class="card-btn">Open</a></div>
+                    </div>
+                </div>
+                <div class="qa-card">
+                    <div class="qa-icon">ST</div>
+                    <div>
+                        <div class="qa-title">Students</div>
+                        <div class="qa-desc">Add students; complete registration via RFID tap.</div>
+                        <div style="margin-top:8px"><a href="students.html" class="card-btn">Open</a></div>
                     </div>
                 </div>
             </div>
@@ -553,6 +572,20 @@
                 })
                 .catch(err => {
                     console.error('Equipment count fetch error:', err);
+                });
+            // Load students count
+            fetch('../../php/superadmin/get_student_count.php')
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.success) {
+                        const badge = document.getElementById('badgeTotalStudents');
+                        if (badge) badge.textContent = String(data.students ?? 0);
+                        const total = document.getElementById('totalStudents');
+                        if (total) total.textContent = String(data.students ?? 0);
+                    }
+                })
+                .catch(err => {
+                    console.error('Student count fetch error:', err);
                 });
             // Fetch departments count explicitly
             fetch('../../php/superadmin/departments_list.php')

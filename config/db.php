@@ -85,6 +85,18 @@ function supabase_update(string $table, array $filters, array $partialRow): arra
 }
 
 /**
+ * Delete rows matching filters. Use with a primary key filter when possible.
+ */
+function supabase_delete(string $table, array $filters): array {
+    $params = [];
+    foreach ($filters as $column => $opValue) {
+        $params[$column] = $opValue;
+    }
+    // Prefer return representation for consistency; Supabase will return deleted rows if allowed
+    return supabase_request('DELETE', $table, $params, null, ['Prefer: return=representation']);
+}
+
+/**
  * Activity log helper. Expects a table `activity_log` with columns:
  * id (uuid/serial), actor_type (text), actor_id (bigint or text), action (text), details (text/json), created_at (timestamp default now()).
  */

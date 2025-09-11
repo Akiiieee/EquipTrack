@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Students - EquipTrack</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+    <link rel="stylesheet" href="../../css/superadmin/dashboard.css">
+</head>
+<body>
+    <header class="header" style="position:sticky; top:0; z-index:20;">
+        <div class="header-content">
+            <div class="logo" style="display:flex; align-items:center; gap:12px;">
+                <h1>EquipTrack</h1>
+            </div>
+            <div class="user-info">
+                <div class="welcome"><span id="username">Super Admin</span></div>
+                <div class="avatar-wrap">
+                    <div id="avatarCircle" class="avatar-circle" title="Profile"></div>
+                    <div class="avatar-actions">
+                        <button id="avatarOpen" class="icon-btn" title="Upload" aria-label="Upload">📷</button>
+                        <button id="avatarRemove" class="icon-btn" title="Remove" aria-label="Remove">🗑️</button>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </header>
+    <div style="max-width:1400px; margin:0 auto; display:grid; grid-template-columns:260px 1fr; gap:24px; padding:24px;">
+        <aside style="background:#fff; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.08); overflow:auto; position:sticky; top:90px; align-self:start; height:calc(100vh - 110px);">
+            <div style="background:#800000; color:#fff; padding:18px 20px; font-weight:600;">Super Admin Panel</div>
+            <nav style="padding:14px 10px;">
+                <a href="dashboard.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Dashboard</a>
+                <a href="add_super_admin.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Manage Super Admins</a>
+                <a href="users.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Users</a>
+                <a href="departments.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Departments</a>
+                <a href="equipment.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#333; text-decoration:none; border-radius:8px;">Equipment</a>
+                <a href="students.html" style="display:flex; align-items:center; gap:10px; padding:12px 12px; color:#800000; text-decoration:none; border-radius:8px; background:#fff3bf;">Students <span style="margin-left:auto; background:#ffd60a; color:#800000; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:700;" id="badgeStudents">0</span></a>
+            </nav>
+        </aside>
+        <main>
+            <div class="form-card" style="margin-top:0;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 15px;">
+                    <h3 style="color:#800000; margin:0;">Manage Students</h3>
+                    <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+                        <input type="text" id="studentSearch" placeholder="Search…" style="padding:10px 12px; border:2px solid #e9ecef; border-radius:8px; width:220px;">
+                        <button id="openAddStudent" class="submit-btn" style="background:#ffd60a; color:#800000;">Add Student</button>
+                    </div>
+                </div>
+                <div id="studentsTable" style="overflow:auto;">
+                    <table style="width:100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="text-align:left; border-bottom:1px solid #eee;">
+                                <th style="padding:8px;">Student ID</th>
+                                <th style="padding:8px;">Name</th>
+                                <th style="padding:8px;">Email</th>
+                                <th style="padding:8px;">Program</th>
+                                <th style="padding:8px;">RFID</th>
+                                <th style="padding:8px;">Status</th>
+                                <th style="padding:8px;">Created</th>
+                                <th style="padding:8px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsBody">
+                            <tr><td colspan="8" style="padding:10px; color:#666;">Loading students…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Add Student Modal -->
+            <div id="addStudentModal" style="position:fixed; inset:0; background:rgba(0,0,0,.4); display:none; align-items:center; justify-content:center;">
+                <div class="form-card" style="width:100%; max-width:520px;">
+                    <h3 style="color:#800000; margin-bottom:12px;">Add Student</h3>
+                    <form id="addStudentForm">
+                        <div style="display:grid; gap:12px;">
+                            <div>
+                                <label>Student ID</label>
+                                <input type="text" name="stud_id" required>
+                            </div>
+                            <div>
+                                <label>Student Name</label>
+                                <input type="text" name="stud_name" required>
+                            </div>
+                            <div>
+                                <label>Email</label>
+                                <input type="email" name="email" required>
+                            </div>
+                            <div>
+                                <label>Program</label>
+                                <select name="program" id="addStudentProgram" required>
+                                    <option value="" disabled selected>Loading…</option>
+                                </select>
+                            </div>
+                            <div class="message" id="addStudentMessage"></div>
+                            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:6px;">
+                                <button type="button" id="cancelAddStudent" class="submit-btn" style="background:#6c757d;">Cancel</button>
+                                <button type="submit" class="submit-btn">Create</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Edit Student Modal -->
+            <div id="editStudentModal" style="position:fixed; inset:0; background:rgba(0,0,0,.4); display:none; align-items:center; justify-content:center;">
+                <div class="form-card" style="width:100%; max-width:520px;">
+                    <h3 style="color:#800000; margin-bottom:12px;">Edit Student</h3>
+                    <form id="editStudentForm">
+                        <input type="hidden" name="id" />
+                        <div style="display:grid; gap:12px;">
+                            <div>
+                                <label>Student ID</label>
+                                <input type="text" name="stud_id" required>
+                            </div>
+                            <div>
+                                <label>Student Name</label>
+                                <input type="text" name="stud_name" required>
+                            </div>
+                            <div>
+                                <label>Email</label>
+                                <input type="email" name="email" placeholder="optional">
+                            </div>
+                            <div>
+                                <label>Program</label>
+                                <select name="program" id="editStudentProgram" required>
+                                    <option value="" disabled selected>Loading…</option>
+                                </select>
+                            </div>
+                            <div class="message" id="editStudentMessage"></div>
+                            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:6px;">
+                                <button type="button" id="cancelEditStudent" class="submit-btn" style="background:#6c757d;">Cancel</button>
+                                <button type="submit" class="submit-btn">Save</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Complete Registration (RFID) Modal -->
+            <div id="rfidModal" style="position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center;">
+                <div class="form-card" style="width:100%; max-width:520px;">
+                    <h3 style="color:#800000; margin-bottom:12px;">Complete Registration</h3>
+                    <div style="color:#333; margin-bottom:10px;">Ask the student to tap their ID card on the 13.56MHz reader.</div>
+                    <form id="rfidForm">
+                        <input type="hidden" name="id" id="rfidStudentId">
+                        <div>
+                            <label>RFID</label>
+                            <input type="text" id="rfidInput" name="rfid" placeholder="Tap card or type RFID" required>
+                            <small style="color:#666;">Most readers type the code and press Enter automatically.</small>
+                        </div>
+                        <div class="message" id="rfidMessage"></div>
+                        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
+                            <button type="button" id="rfidCancel" class="submit-btn" style="background:#6c757d;">Cancel</button>
+                            <button type="submit" class="submit-btn" style="background:#ffd60a; color:#800000;">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Profile Modal (shared) -->
+    <div id="profileModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Profile Picture</h3>
+                <span class="close" onclick="closeProfileModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div id="currentProfileDisplay" style="width: 120px; height: 120px; border-radius: 50%; background: #ffd60a; color: #800000; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: bold; margin: 0 auto 15px; background-size: cover; background-position: center;"></div>
+                    <p style="color: #666; margin: 0;">Current Profile Picture</p>
+                </div>
+                <form id="profileForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="profileImage">Upload New Picture</label>
+                        <input type="file" id="profileImage" name="profile_image" accept="image/*" style="margin-bottom: 15px;">
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="cancel-btn" onclick="closeProfileModal()">Cancel</button>
+                        <button type="submit" class="submit-btn" style="background: #ffd60a; color: #800000;">Update Profile</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm & Toast -->
+    <div id="confirmModal" style="position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center;">
+        <div class="form-card" style="width:100%; max-width:420px;">
+            <h3 id="confirmTitle" style="color:#800000; margin-bottom:10px;">Please Confirm</h3>
+            <div id="confirmMessage" style="color:#333;">Are you sure?</div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
+                <button type="button" id="confirmCancel" class="submit-btn" style="background:#6c757d;">Cancel</button>
+                <button type="button" id="confirmOk" class="submit-btn">OK</button>
+            </div>
+        </div>
+    </div>
+    <div id="toastContainer" style="position: fixed; top: 18px; right: 18px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+
+    <script>
+    (function(){
+        function openConfirm(message, title='Please Confirm'){
+            return new Promise(resolve => {
+                const cm = document.getElementById('confirmModal');
+                const msg = document.getElementById('confirmMessage');
+                const ttl = document.getElementById('confirmTitle');
+                const ok = document.getElementById('confirmOk');
+                const cancel = document.getElementById('confirmCancel');
+                ttl.textContent = title; msg.textContent = message;
+                function cleanup(result){ cm.style.display='none'; ok.removeEventListener('click', okH); cancel.removeEventListener('click', cancelH); cm.removeEventListener('click', backdropH); resolve(result); }
+                function okH(){ cleanup(true); }
+                function cancelH(){ cleanup(false); }
+                function backdropH(e){ if(e.target===cm) cleanup(false); }
+                ok.addEventListener('click', okH); cancel.addEventListener('click', cancelH); cm.addEventListener('click', backdropH);
+                cm.style.display='flex';
+            });
+        }
+        function showToast(text){ const c=document.getElementById('toastContainer'); const el=document.createElement('div'); el.style.background='#800000'; el.style.color='#fff'; el.style.padding='10px 14px'; el.style.borderRadius='8px'; el.style.boxShadow='0 6px 16px rgba(0,0,0,.2)'; el.textContent=text; c.appendChild(el); setTimeout(()=>{ el.remove(); }, 2500); }
+        function checkLogin(){ return fetch('../../php/superadmin/check_session.php').then(r=>r.json()).then(d=>{ if(!d.logged_in){ window.location.href='super_admin_login.html'; } else { document.getElementById('username').textContent = d.username || 'Super Admin'; } }); }
+        async function logout(){ const ok = await openConfirm('Are you sure you want to logout?', 'Logout'); if (!ok) return; fetch('../../php/superadmin/logout.php', { method:'POST' }).then(r=>r.json()).then(d=>{ if(d.success){ showToast('Logged out'); setTimeout(()=>{ window.location.href='super_admin_login.html'; }, 600); } else { showToast(d.message||'Logout failed'); } }).catch(()=>{ showToast('Network error'); setTimeout(()=>{ window.location.href='super_admin_login.html'; }, 800); }); }
+        window.logout = logout;
+
+        function loadProfile(){
+            const avatarElement = document.getElementById('avatarCircle');
+            fetch('../../php/superadmin/get_profile.php')
+                .then(r=>r.json())
+                .then(data=>{
+                    if (data.success && data.profile_image){
+                        avatarElement.style.backgroundImage = `url('../../uploads/avatars/${data.profile_image}')`;
+                        avatarElement.style.backgroundSize = 'cover';
+                        avatarElement.style.backgroundPosition = 'center';
+                    } else {
+                        const username = (document.getElementById('username').textContent||'S').trim();
+                        avatarElement.textContent = username.charAt(0).toUpperCase();
+                        avatarElement.style.backgroundImage='none';
+                    }
+                })
+                .catch(()=>{
+                    const username = (document.getElementById('username').textContent||'S').trim();
+                    avatarElement.textContent = username.charAt(0).toUpperCase();
+                });
+        }
+
+        function renderStudents(rows){
+            const body = document.getElementById('studentsBody');
+            const safe = s=>String(s??'').replace(/</g,'&lt;');
+            body.innerHTML = (rows||[]).map((s)=>{
+                const isRegistered = String(s.status||'').toLowerCase()==='registered';
+                return `<tr data-id="${s.id}">
+                    <td style="padding:8px;">${safe(s.stud_id)}</td>
+                    <td style="padding:8px;">${safe(s.stud_name)}</td>
+                    <td style="padding:8px;">${safe(s.email||'—')}</td>
+                    <td style="padding:8px;">${safe(s.program)}</td>
+                    <td style="padding:8px;">${safe(s.rfid||'—')}</td>
+                    <td style="padding:8px;">
+                        <span class="status-badge ${isRegistered?'available':'reserved'}">${isRegistered?'Registered':'Not fully registered'}</span>
+                    </td>
+                    <td style="padding:8px;">${safe((s.created||'').toString().slice(0,19).replace('T',' '))}</td>
+                    <td style="padding:8px; display:flex; gap:8px;">
+                        <button class="editBtn" data-id="${s.id}" style="background:#ffd60a;color:#800000;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;">Edit</button>
+                        ${isRegistered? '' : `<button class="completeBtn" data-id="${s.id}" style="background:#ffd60a;color:#800000;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;">Complete Registration</button>`}
+                        <button class="deleteBtn" data-id="${s.id}" style="background:#dc3545;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;">Delete</button>
+                    </td>
+                </tr>`;
+            }).join('') || '<tr><td colspan="8" style="padding:10px; color:#666;">No students</td></tr>';
+
+            body.querySelectorAll('.deleteBtn').forEach(btn=>{
+                btn.addEventListener('click', async function(){
+                    const id = this.getAttribute('data-id');
+                    const ok = await openConfirm('Delete this student?', 'Delete Student');
+                    if (!ok) return;
+                    const fd = new FormData(); fd.append('id', id);
+                    fetch('../../php/superadmin/students_delete.php', { method:'POST', body:fd })
+                        .then(r=>r.json()).then(res=>{ if(res.success){ showToast('Student deleted'); loadStudents(); } else { showToast(res.message||'Delete failed'); } })
+                        .catch(()=>showToast('Network error'));
+                });
+            });
+            body.querySelectorAll('.completeBtn').forEach(btn=>{
+                btn.addEventListener('click', function(){ openRfidModal(this.getAttribute('data-id')); });
+            });
+            body.querySelectorAll('.editBtn').forEach(btn=>{
+                btn.addEventListener('click', function(){ openEditModal(this.getAttribute('data-id')); });
+            });
+        }
+
+        let allStudents = [];
+        function loadStudents(){
+            const body = document.getElementById('studentsBody');
+            fetch('../../php/superadmin/students_list.php')
+                .then(r=>r.json())
+                .then(d=>{ if(d.success){ allStudents = d.data||[]; renderStudents(allStudents); } else { body.innerHTML = '<tr><td colspan="8" style="padding:10px; color:#800000;">Failed to load students</td></tr>'; } })
+                .catch(()=>{ body.innerHTML = '<tr><td colspan="8" style="padding:10px; color:#800000;">Network error</td></tr>'; });
+        }
+
+        // Add Student modal
+        const addModal = document.getElementById('addStudentModal');
+        const addBtn = document.getElementById('openAddStudent');
+        const addCancel = document.getElementById('cancelAddStudent');
+        const addForm = document.getElementById('addStudentForm');
+        const addMsg = document.getElementById('addStudentMessage');
+        function populatePrograms(){
+            const sel = document.getElementById('addStudentProgram');
+            sel.innerHTML = '<option value="" disabled selected>Loading…</option>';
+            return fetch('../../php/superadmin/departments_list.php')
+                .then(r=>r.json())
+                .then(data=>{
+                    const options = (data.departments||[]).map(d=>`<option value="${String(d.department_name).replace(/"/g,'&quot;')}">${d.department_name}</option>`).join('');
+                    sel.innerHTML = options || '<option value="" disabled selected>No departments</option>';
+                })
+                .catch(()=>{ sel.innerHTML = '<option value="" disabled selected>Failed to load</option>'; });
+        }
+        addBtn.addEventListener('click', ()=>{ addMsg.textContent=''; populatePrograms().then(()=>{ addModal.style.display='flex'; }); });
+        addCancel.addEventListener('click', ()=>{ addModal.style.display='none'; addForm.reset(); });
+        addModal.addEventListener('click', (e)=>{ if(e.target===addModal){ addModal.style.display='none'; }});
+        addForm.addEventListener('submit', function(e){
+            e.preventDefault();
+            addMsg.textContent='';
+            const fd = new FormData(addForm);
+            fetch('../../php/superadmin/students_add.php', { method:'POST', body: fd })
+                .then(r=>r.json())
+                .then(res=>{ if(res.success){ showToast('Student added'); addForm.reset(); addModal.style.display='none'; loadStudents(); } else { addMsg.style.color='#800000'; addMsg.textContent = res.message||'Failed to add'; showToast(res.message||'Failed to add'); } })
+                .catch(()=>{ addMsg.style.color='#800000'; addMsg.textContent='Network error'; showToast('Network error'); });
+        });
+
+        // RFID modal
+        const rfidModal = document.getElementById('rfidModal');
+        const rfidCancel = document.getElementById('rfidCancel');
+        const rfidForm = document.getElementById('rfidForm');
+        const rfidInput = document.getElementById('rfidInput');
+        const rfidMsg = document.getElementById('rfidMessage');
+        window.openRfidModal = function(id){
+            document.getElementById('rfidStudentId').value = id;
+            rfidMsg.textContent='';
+            rfidInput.value='';
+            rfidModal.style.display='flex';
+            setTimeout(()=>{ rfidInput.focus(); }, 50);
+        }
+        rfidCancel.addEventListener('click', ()=>{ rfidModal.style.display='none'; });
+        rfidModal.addEventListener('click', (e)=>{ if(e.target===rfidModal){ rfidModal.style.display='none'; }});
+        rfidInput.addEventListener('keypress', function(e){ if(e.key==='Enter'){ e.preventDefault(); rfidForm.requestSubmit(); } });
+        rfidInput.addEventListener('input', function(){ if(this.value.length >= 6){ /* many readers type fast */ } });
+        rfidForm.addEventListener('submit', function(e){
+            e.preventDefault();
+            const fd = new FormData(rfidForm);
+            const value = (fd.get('rfid')||'').toString().trim();
+            if (value.length < 4){ rfidMsg.style.color='#800000'; rfidMsg.textContent='Invalid RFID'; return; }
+            fetch('../../php/superadmin/students_update_status.php', { method:'POST', body: fd })
+                .then(r=>r.json())
+                .then(res=>{ if(res.success){ showToast('Registration completed'); rfidModal.style.display='none'; loadStudents(); } else { rfidMsg.style.color='#800000'; rfidMsg.textContent = res.message||'Update failed'; showToast(res.message||'Update failed'); } })
+                .catch(()=>{ rfidMsg.style.color='#800000'; rfidMsg.textContent='Network error'; showToast('Network error'); });
+        });
+
+        // Edit modal logic
+        const editModal = document.getElementById('editStudentModal');
+        const editCancel = document.getElementById('cancelEditStudent');
+        const editForm = document.getElementById('editStudentForm');
+        const editMsg = document.getElementById('editStudentMessage');
+        function populateEditPrograms(selected){
+            const sel = document.getElementById('editStudentProgram');
+            if (!sel) return Promise.resolve();
+            sel.innerHTML = '<option value="" disabled selected>Loading…</option>';
+            return fetch('../../php/superadmin/departments_list.php')
+                .then(r=>r.json())
+                .then(data=>{
+                    const options = (data.departments||[]).map(d=>`<option value="${String(d.department_name).replace(/"/g,'&quot;')}">${d.department_name}</option>`).join('');
+                    sel.innerHTML = options || '<option value="" disabled selected>No departments</option>';
+                    if (selected) sel.value = selected;
+                })
+                .catch(()=>{ sel.innerHTML = '<option value="" disabled selected>Failed to load</option>'; });
+        }
+        function openEditModal(id){
+            const s = (allStudents||[]).find(x=>String(x.id)===String(id));
+            if (!s) return;
+            editForm.id.value = s.id;
+            editForm.stud_id.value = s.stud_id||'';
+            editForm.stud_name.value = s.stud_name||'';
+            populateEditPrograms(s.program).then(()=>{ editModal.style.display='flex'; });
+            editMsg.textContent='';
+        }
+        if (editCancel) { editCancel.addEventListener('click', ()=>{ editModal.style.display='none'; }); }
+        if (editModal) { editModal.addEventListener('click', (e)=>{ if(e.target===editModal){ editModal.style.display='none'; }}); }
+        if (editForm) {
+            editForm.addEventListener('submit', function(e){
+                e.preventDefault();
+                editMsg.textContent='';
+                const fd = new FormData(editForm);
+                fetch('../../php/superadmin/students_update.php', { method:'POST', body: fd })
+                    .then(r=>r.json())
+                    .then(res=>{ if(res.success){ showToast('Student updated'); editModal.style.display='none'; loadStudents(); } else { editMsg.style.color='#800000'; editMsg.textContent = res.message||'Update failed'; showToast(res.message||'Update failed'); } })
+                    .catch(()=>{ editMsg.style.color='#800000'; editMsg.textContent='Network error'; showToast('Network error'); });
+            });
+        }
+
+        // Search box
+        const searchInput = document.getElementById('studentSearch');
+        if (searchInput){
+            searchInput.addEventListener('input', function(){
+                const q = this.value.toLowerCase().trim();
+                if (!q){ renderStudents(allStudents); return; }
+                const filtered = (allStudents||[]).filter(s=>{
+                    const parts = [s.stud_id, s.stud_name, s.email, s.program, s.rfid, s.status].map(x=>String(x||'').toLowerCase());
+                    return parts.some(p=>p.includes(q));
+                });
+                renderStudents(filtered);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function(){
+            checkLogin().then(()=>{
+                const avatarElement = document.getElementById('avatarCircle');
+                const usernameElement = document.getElementById('username');
+                const firstLetter = (usernameElement.textContent||'S').trim().charAt(0).toUpperCase();
+                avatarElement.textContent = firstLetter;
+                loadProfile();
+                loadStudents();
+                // Load student count badge
+                fetch('../../php/superadmin/get_student_count.php').then(r=>r.json()).then(d=>{ const b=document.getElementById('badgeStudents'); if(b && d && d.success){ b.textContent = String(d.students||0); }}).catch(()=>{});
+            });
+            document.getElementById('avatarOpen').addEventListener('click', ()=>{ document.getElementById('profileModal').style.display='block'; loadProfile(); });
+            document.getElementById('avatarRemove').addEventListener('click', function(){
+                openConfirm('Remove profile picture?', 'Remove Profile').then(confirmed=>{
+                    if(!confirmed) return;
+                    fetch('../../php/superadmin/remove_profile.php', { method:'POST' })
+                        .then(r=>r.json()).then(d=>{ if(d.success){ showToast('Profile picture removed'); loadProfile(); document.getElementById('profileModal').style.display='none'; } else { showToast(d.message||'Failed to remove'); } })
+                        .catch(()=>showToast('Network error'));
+                });
+            });
+            document.getElementById('profileForm').addEventListener('submit', function(e){
+                e.preventDefault();
+                const fd = new FormData(this);
+                fetch('../../php/superadmin/update_profile.php', { method:'POST', body: fd })
+                    .then(r=>r.json()).then(d=>{ if(d.success){ showToast('Profile updated'); loadProfile(); document.getElementById('profileModal').style.display='none'; } else { showToast(d.message||'Update failed'); } })
+                    .catch(()=>showToast('Network error'));
+            });
+        });
+    })();
+    </script>
+</body>
+</html>
+
+
