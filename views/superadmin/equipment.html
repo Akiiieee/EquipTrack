@@ -59,12 +59,10 @@
                                 <th style="padding:8px;">Equipment Name</th>
                                 <th style="padding:8px;">Quantity</th>
                                 <th style="padding:8px;">Department</th>
-                                <th style="padding:8px;">Status</th>
-                                <th style="padding:8px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="equipmentTableBody">
-                            <tr><td colspan="6" style="padding:10px; color:#666;">Loading equipment…</td></tr>
+                            <tr><td colspan="4" style="padding:10px; color:#666;">Loading equipment…</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -398,20 +396,15 @@
                                 <td style="padding:8px;">${item.equipment_name}</td>
                                 <td style="padding:8px;">${item.quantity || 1}</td>
                                 <td style="padding:8px;">${item.department}</td>
-                                <td style="padding:8px;"><span class="status-badge status-${item.status}">${item.status.replace('_', ' ').toUpperCase()}</span></td>
-                                <td style="padding:8px;">
-                                    <button class="btn-warning" onclick="openEditModal(${item.equipment_id}, '${item.equipment_name}', ${item.quantity || 1}, '${item.department}', '${item.status}', '${item.equipment_img || ''}')" style="padding:4px 8px; margin-right:4px;">Edit</button>
-                                    <button class="btn-danger" onclick="deleteEquipment(${item.equipment_id}, '${item.equipment_name}')" style="padding:4px 8px;">Delete</button>
-                                </td>
                             </tr>
                         `).join('');
-                        tbody.innerHTML = rows || '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #666;">No equipment found</td></tr>';
+                        tbody.innerHTML = rows || '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #666;">No equipment found</td></tr>';
                     } else {
-                        tbody.innerHTML = '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #666;">No equipment found</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #666;">No equipment found</td></tr>';
                     }
                 } catch (error) {
                     console.error('Failed to load equipment:', error);
-                    document.getElementById('equipmentTableBody').innerHTML = '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #800000;">Failed to load equipment</td></tr>';
+                    document.getElementById('equipmentTableBody').innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #800000;">Failed to load equipment</td></tr>';
                 }
             }
             function applyEquipmentFilters(){
@@ -421,27 +414,22 @@
                 const filtered = (allEquipment||[]).filter(item=>{
                     if (dept && String(item.department||'') !== dept) return false;
                     if (!q) return true;
-                    const parts = [item.equipment_name, item.department, item.status].map(v=>String(v||'').toLowerCase());
+                    const parts = [item.equipment_name, item.department].map(v=>String(v||'').toLowerCase());
                     return parts.some(p=>p.includes(q));
                 });
                 tbody.innerHTML = filtered.map(item => `
                     <tr>
                         <td style="padding:8px;">
                             ${item.equipment_img ? 
-                                `<img src="../../${item.equipment_img}" alt="${item.equipment_name}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">` : 
+                                `<img src="../../${item.equipment_img}" alt="${item.equipment_name}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">` :
                                 '<div style="width: 40px; height: 40px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #666; font-size: 10px;">No Image</div>'
                             }
                         </td>
                         <td style="padding:8px;">${item.equipment_name}</td>
                         <td style="padding:8px;">${item.quantity || 1}</td>
                         <td style="padding:8px;">${item.department}</td>
-                        <td style="padding:8px;"><span class="status-badge status-${item.status}">${item.status.replace('_', ' ').toUpperCase()}</span></td>
-                        <td style="padding:8px;">
-                            <button class="btn-warning" onclick="openEditModal(${item.equipment_id}, '${item.equipment_name}', ${item.quantity || 1}, '${item.department}', '${item.status}', '${item.equipment_img || ''}')" style="padding:4px 8px; margin-right:4px;">Edit</button>
-                            <button class="btn-danger" onclick="deleteEquipment(${item.equipment_id}, '${item.equipment_name}')" style="padding:4px 8px;">Delete</button>
-                        </td>
                     </tr>
-                `).join('') || '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #666;">No equipment found</td></tr>';
+                `).join('') || '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #666;">No equipment found</td></tr>';
             }
 
             // Open edit modal

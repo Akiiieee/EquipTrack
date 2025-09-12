@@ -4,30 +4,933 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - EquipTrack</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👨‍💼</text></svg>">
     <style>
-        body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#fff; }
-        .header { background:#800000; color:#fff; padding:16px; }
-        .container { max-width:1100px; margin:24px auto; padding:0 16px; }
-        .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#ffd60a; color:#800000; font-weight:600; }
-        .card { background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); border-radius:12px; padding:24px; margin-top:16px; }
-        .logout { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); color:#fff; padding:8px 14px; border-radius:8px; text-decoration:none; }
+        body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f8f9fa; margin:0; }
+        .header { background:#800000; color:#fff; padding:16px; position:sticky; top:0; z-index:20; }
+        .container { max-width:1400px; margin:0 auto; padding:0 16px; }
+        .header-content { display:flex; justify-content:space-between; align-items:center; }
+        .logo h2 { margin:0; font-size:24px; }
+        .user-info { display:flex; align-items:center; gap:16px; }
+        .pill { display:inline-block; padding:6px 12px; border-radius:999px; background:#ffd60a; color:#800000; font-weight:600; font-size:12px; }
+        .logout { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); color:#fff; padding:8px 14px; border-radius:8px; text-decoration:none; cursor:pointer; }
+        .logout:hover { background:rgba(255,255,255,0.25); }
+        
+        .main-content { display:grid; grid-template-columns:260px 1fr; gap:24px; padding:24px; max-width:1400px; margin:0 auto; }
+        .sidebar { background:#fff; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.08); height:fit-content; position:sticky; top:90px; }
+        .sidebar-header { background:#800000; color:#fff; padding:18px 20px; font-weight:600; border-radius:12px 12px 0 0; }
+        .sidebar-nav { padding:14px 10px; }
+        .nav-item { display:flex; align-items:center; gap:10px; padding:12px; color:#333; text-decoration:none; border-radius:8px; margin-bottom:4px; transition:all 0.2s; }
+        .nav-item:hover { background:#f8f9fa; }
+        .nav-item.active { background:#fff3bf; color:#800000; }
+        .nav-badge { margin-left:auto; background:#ffd60a; color:#800000; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:700; }
+        
+        .content-area { background:#fff; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.08); padding:24px; }
+        .content-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+        .content-title { color:#800000; margin:0; font-size:24px; }
+        .action-buttons { display:flex; gap:12px; }
+        .btn { padding:10px 16px; border:none; border-radius:8px; cursor:pointer; font-weight:600; text-decoration:none; display:inline-block; transition:all 0.2s; }
+        .btn-primary { background:#ffd60a; color:#800000; }
+        .btn-primary:hover { background:#ffed4e; }
+        .btn-secondary { background:#6c757d; color:#fff; }
+        .btn-secondary:hover { background:#5a6268; }
+        .btn-danger { background:#dc3545; color:#fff; }
+        .btn-danger:hover { background:#c82333; }
+        
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px; }
+        .stat-card { background:#f8f9fa; padding:20px; border-radius:12px; text-align:center; }
+        .stat-number { font-size:32px; font-weight:bold; color:#800000; margin-bottom:8px; }
+        .stat-label { color:#666; font-size:14px; }
+        
+        .table-container { overflow-x:auto; }
+        .table { width:100%; border-collapse:collapse; }
+        .table th, .table td { padding:12px 8px; text-align:left; border-bottom:1px solid #eee; }
+        .table th { background:#f8f9fa; font-weight:600; color:#333; }
+        .table tr:hover { background:#f8f9fa; }
+        
+        .search-filter { display:flex; gap:12px; align-items:center; margin-bottom:16px; }
+        .search-input { padding:10px 12px; border:2px solid #e9ecef; border-radius:8px; width:220px; }
+        .filter-select { padding:10px 12px; border:2px solid #e9ecef; border-radius:8px; }
+        
+        .modal { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; z-index:1000; }
+        .modal-content { background:#fff; border-radius:12px; padding:24px; width:100%; max-width:500px; max-height:90vh; overflow-y:auto; }
+        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .modal-title { color:#800000; margin:0; font-size:20px; }
+        .close { font-size:24px; cursor:pointer; color:#666; }
+        .close:hover { color:#000; }
+        
+        .form-group { margin-bottom:16px; }
+        .form-group label { display:block; margin-bottom:6px; font-weight:600; color:#333; }
+        .form-group input, .form-group select, .form-group textarea { width:100%; padding:10px 12px; border:2px solid #e9ecef; border-radius:8px; font-size:14px; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline:none; border-color:#ffd60a; }
+        
+        .status-badge { padding:4px 8px; border-radius:12px; font-size:12px; font-weight:600; text-transform:uppercase; }
+        .status-available { background:#d4edda; color:#155724; }
+        .status-in_use { background:#fff3cd; color:#856404; }
+        .status-maintenance { background:#f8d7da; color:#721c24; }
+        .status-retired { background:#d1ecf1; color:#0c5460; }
+        
+        .toast-container { position:fixed; top:18px; right:18px; z-index:9999; display:flex; flex-direction:column; gap:10px; }
+        .toast { background:#800000; color:#fff; padding:12px 16px; border-radius:8px; box-shadow:0 6px 16px rgba(0,0,0,0.2); }
+        
+        .hidden { display:none !important; }
+
+        /* Admin profile modal - pro look */
+        #adminProfileModal .modal-content {
+            max-width: 520px;
+            padding: 28px 28px 24px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.25);
+        }
+        #adminProfileModal .modal-header {
+            border-bottom: none;
+            justify-content: center;
+            position: relative;
+            padding-bottom: 8px;
+        }
+        #adminProfileModal .modal-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #800000;
+            letter-spacing: .2px;
+        }
+        #adminProfileModal .close { position:absolute; right:12px; top:12px; color:#999; }
+        #adminAvatarWrap { box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+        #adminProfileAvatar { border: 4px solid #fff; box-shadow: 0 6px 18px rgba(0,0,0,.15); }
+        #adminAvatarOverlay button { box-shadow: 0 6px 18px rgba(0,0,0,.12); }
+        #adminProfileModal .form-group label { color:#6b7280; font-size: 13px; text-transform: uppercase; letter-spacing: .4px; }
+        #adminProfileModal input[disabled] {
+            background:#f9fafb;
+            color:#374151;
+            border:2px solid #f3f4f6;
+        }
+        #adminProfileModal .form-group { margin-bottom: 14px; }
+        #adminProfileModal hr { border:0; border-top:1px solid #eee; margin: 12px 0 16px; }
     </style>
-    </head>
+</head>
 <body>
-    <div class="header">
+    <header class="header">
         <div class="container">
-            <h2>EquipTrack Admin</h2>
-            <div>Welcome, <span id="username">Admin</span> • <span class="pill">ADMIN</span></div>
-            <div style="margin-top:8px"><a href="#" class="logout" onclick="logout()">Logout</a></div>
+            <div class="header-content">
+                <div class="logo">
+                    <h2>EquipTrack Admin</h2>
+                </div>
+                <div class="user-info">
+                    <span id="username" style="display:none;">Admin</span>
+                    <div style="position:relative;">
+                        <div id="adminAvatar" title="Profile" style="width:32px;height:32px;border-radius:50%;background:#ffd60a;color:#800000;display:flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;overflow:hidden;background-size:cover;background-position:center;" onclick="toggleAdminAvatarMenu()">A</div>
+                        <div id="adminAvatarMenu" style="position:absolute;right:0;top:40px;background:#fff;border:1px solid #e9ecef;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,0.15);padding:8px;display:none;min-width:140px;z-index:30;">
+                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                <button type="button" onclick="openAdminProfile()" style="background:none;border:none;color:#800000;padding:6px 8px;text-align:left;cursor:pointer;font-weight:600;">Settings</button>
+                                <button type="button" onclick="logout()" style="background:none;border:none;color:#b30000;padding:6px 8px;text-align:left;cursor:pointer;font-weight:600;">Logout</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <aside class="sidebar">
+            <div class="sidebar-header">Admin Panel</div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="dashboard">
+                    📊 Dashboard
+                </a>
+                <a href="#" class="nav-item" data-section="staff">
+                    👥 Staff <span class="nav-badge" id="badgeStaff">0</span>
+                </a>
+                <a href="#" class="nav-item" data-section="students">
+                    🎓 Students <span class="nav-badge" id="badgeStudents">0</span>
+                </a>
+                <a href="#" class="nav-item" data-section="equipment">
+                    🔧 Equipment <span class="nav-badge" id="badgeEquipment">0</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="content-area">
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="content-section">
+                <div class="content-header">
+                    <h3 class="content-title">Dashboard Overview</h3>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalStaff">0</div>
+                        <div class="stat-label">Total Staff</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalStudents">0</div>
+                        <div class="stat-label">Total Students</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalEquipment">0</div>
+                        <div class="stat-label">Total Equipment</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="availableEquipment">0</div>
+                        <div class="stat-label">Available Equipment</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Staff Section -->
+            <div id="staff-section" class="content-section hidden">
+                <div class="content-header">
+                    <h3 class="content-title">Manage Staff</h3>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="openAddStaffModal()">Add Staff</button>
+                    </div>
+                </div>
+                <div class="search-filter">
+                    <input type="text" id="staffSearch" class="search-input" placeholder="Search staff...">
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Department</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffTableBody">
+                            <tr><td colspan="5" style="text-align:center; padding:20px; color:#666;">Loading staff...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Students Section -->
+            <div id="students-section" class="content-section hidden">
+                <div class="content-header">
+                    <h3 class="content-title">Manage Students</h3>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="openAddStudentModal()">Add Student</button>
+                    </div>
+                </div>
+                <div class="search-filter">
+                    <input type="text" id="studentSearch" class="search-input" placeholder="Search students...">
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Program</th>
+                                <th>RFID</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody">
+                            <tr><td colspan="7" style="text-align:center; padding:20px; color:#666;">Loading students...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Equipment Section -->
+            <div id="equipment-section" class="content-section hidden">
+                <div class="content-header">
+                    <h3 class="content-title">Manage Equipment</h3>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="openAddEquipmentModal()">Add Equipment</button>
+                    </div>
+                </div>
+                <div class="search-filter">
+                    <input type="text" id="equipmentSearch" class="search-input" placeholder="Search equipment...">
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Quantity</th>
+                                <th>Department</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="equipmentTableBody">
+                            <tr><td colspan="6" style="text-align:center; padding:20px; color:#666;">Loading equipment...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    <!-- Modals -->
+    <!-- Add/Edit Staff Modal -->
+    <div id="staffModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="staffModalTitle">Add Staff</h3>
+                <span class="close" onclick="closeModal('staffModal')">&times;</span>
+            </div>
+            <form id="staffForm">
+                <input type="hidden" id="staffId" name="id">
+                <div class="form-group">
+                    <label for="staffName">Full Name *</label>
+                    <input type="text" id="staffName" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="staffEmail">Email *</label>
+                    <input type="email" id="staffEmail" name="email" required>
+                </div>
+                <!-- Role and Department are automatically set - no form fields needed -->
+                <div class="form-group">
+                    <label for="staffPassword">Password *</label>
+                    <input type="password" id="staffPassword" name="password" required>
+                </div>
+                <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('staffModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Staff</button>
+                </div>
+            </form>
         </div>
     </div>
-    <div class="container">
-        <div class="card">
-            <h3>Admin Dashboard</h3>
-            <p>Only users with role=admin can access this page.</p>
+
+    <!-- Add/Edit Student Modal -->
+    <div id="studentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="studentModalTitle">Add Student</h3>
+                <span class="close" onclick="closeModal('studentModal')">&times;</span>
+            </div>
+            <form id="studentForm">
+                <input type="hidden" id="studentId" name="id">
+                <div class="form-group">
+                    <label for="studentIdInput">Student ID *</label>
+                    <input type="text" id="studentIdInput" name="stud_id" required>
+                </div>
+                <div class="form-group">
+                    <label for="studentName">Full Name *</label>
+                    <input type="text" id="studentName" name="stud_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="studentEmail">Email *</label>
+                    <input type="email" id="studentEmail" name="email" required>
+                </div>
+                <!-- Program is automatically set to admin's department - no form field needed -->
+                <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('studentModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Student</button>
+                </div>
+            </form>
         </div>
     </div>
+
+    <!-- RFID Assignment Modal -->
+    <div id="rfidModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="rfidModalTitle">Complete Registration</h3>
+                <span class="close" onclick="closeModal('rfidModal')">&times;</span>
+            </div>
+            <form id="rfidForm">
+                <input type="hidden" id="rfidStudentId" name="student_id">
+                <div class="form-group">
+                    <label for="rfidInput">RFID Tag *</label>
+                    <input type="text" id="rfidInput" name="rfid" placeholder="Scan or enter RFID tag" required>
+                    <small class="form-text">Scan the student's RFID card or enter the RFID number manually</small>
+                </div>
+                <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('rfidModal')">Cancel</button>
+                    <button type="submit" class="btn btn-success">Complete Registration</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Equipment Modal -->
+    <div id="equipmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="equipmentModalTitle">Add Equipment</h3>
+                <span class="close" onclick="closeModal('equipmentModal')">&times;</span>
+            </div>
+            <form id="equipmentForm" enctype="multipart/form-data">
+                <input type="hidden" id="equipmentId" name="id">
+                <div class="form-group">
+                    <label for="equipmentName">Equipment Name *</label>
+                    <input type="text" id="equipmentName" name="equipment_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="equipmentQuantity">Quantity *</label>
+                    <input type="number" id="equipmentQuantity" name="quantity" min="1" value="1" required>
+                </div>
+                <!-- Department and Status are automatically set on the server side -->
+                <div class="form-group">
+                    <label for="equipmentImage">Equipment Image</label>
+                    <input type="file" id="equipmentImage" name="image" accept="image/*">
+                </div>
+                <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('equipmentModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Equipment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Admin Profile Modal -->
+    <div id="adminProfileModal" class="modal">
+        <div class="modal-content" style="max-width:480px;">
+            <div class="modal-header">
+                <h3 class="modal-title">My Profile</h3>
+                <span class="close" onclick="closeModal('adminProfileModal')">&times;</span>
+            </div>
+            <div class="form-group" style="text-align:center;">
+                <div id="adminAvatarWrap" style="width:120px;height:120px;border-radius:50%;margin:0 auto 10px;position:relative;" onmouseenter="document.getElementById('adminAvatarOverlay').style.opacity='1'" onmouseleave="document.getElementById('adminAvatarOverlay').style.opacity='0'">
+                    <div id="adminProfileAvatar" style="width:120px;height:120px;border-radius:50%;background:#ffd60a;color:#800000;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:800;background-size:cover;background-position:center;overflow:hidden;">A</div>
+                    <div id="adminAvatarOverlay" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(0,0,0,.35);border-radius:50%;opacity:0;transition:opacity .15s ease;">
+                        <button type="button" title="Upload" onclick="triggerAdminAvatarUpload()" style="width:40px;height:40px;border-radius:10px;background:#fff;color:#800000;border:1px solid #ffd60a;cursor:pointer;">📷</button>
+                        <button type="button" title="Remove" onclick="removeAdminAvatar()" style="width:40px;height:40px;border-radius:10px;background:#fff;color:#800000;border:1px solid #ffd60a;cursor:pointer;">🗑️</button>
+                    </div>
+                </div>
+                <div id="adminProfileRole" style="margin-top:8px;font-weight:700;color:#800000;">ADMIN</div>
+                <input type="file" id="adminAvatarInput" accept="image/*" style="display:none;">
+            </div>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="adminProfileName" disabled>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="text" id="adminProfileEmail" disabled>
+            </div>
+            <div class="form-group">
+                <label>Department</label>
+                <input type="text" id="adminProfileDepartment" disabled>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Global variables
+        let currentSection = 'dashboard';
+        let allStaff = [];
+        let allStudents = [];
+        let allEquipment = [];
+        let allDepartments = [];
+
+        // Utility functions
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            const form = document.getElementById(modalId.replace('Modal', 'Form'));
+            if (form && typeof form.reset === 'function') form.reset();
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        // Navigation
+        function switchSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            // Show selected section
+            document.getElementById(section + '-section').classList.remove('hidden');
+            document.querySelector(`[data-section="${section}"]`).classList.add('active');
+            
+            currentSection = section;
+            
+            // Load data for the section
+            switch(section) {
+                case 'dashboard':
+                    loadDashboardStats();
+                    break;
+                case 'staff':
+                    loadStaff();
+                    break;
+                case 'students':
+                    loadStudents();
+                    break;
+                case 'equipment':
+                    loadEquipment();
+                    break;
+            }
+        }
+
+        // Dashboard functions
+        async function loadDashboardStats() {
+            try {
+                const [staffRes, studentsRes, equipmentRes] = await Promise.all([
+                    fetch('../../php/admin/get_staff_count.php'),
+                    fetch('../../php/admin/get_student_count.php'),
+                    fetch('../../php/admin/get_equipment_count.php')
+                ]);
+                
+                const staffData = await staffRes.json();
+                const studentsData = await studentsRes.json();
+                const equipmentData = await equipmentRes.json();
+                
+                document.getElementById('totalStaff').textContent = staffData.count || 0;
+                document.getElementById('totalStudents').textContent = studentsData.count || 0;
+                document.getElementById('totalEquipment').textContent = equipmentData.total || 0;
+                document.getElementById('availableEquipment').textContent = equipmentData.available || 0;
+                
+                // Update badges
+                document.getElementById('badgeStaff').textContent = staffData.count || 0;
+                document.getElementById('badgeStudents').textContent = studentsData.count || 0;
+                document.getElementById('badgeEquipment').textContent = equipmentData.total || 0;
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+            }
+        }
+
+        // Staff functions
+        async function loadStaff() {
+            try {
+                const response = await fetch('../../php/admin/staff_list.php');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allStaff = data.staff || [];
+                    renderStaff(allStaff);
+                } else {
+                    document.getElementById('staffTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#800000;">Failed to load staff</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading staff:', error);
+                document.getElementById('staffTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#800000;">Network error</td></tr>';
+            }
+        }
+
+        function renderStaff(staff) {
+            const tbody = document.getElementById('staffTableBody');
+            tbody.innerHTML = staff.map(s => `
+                <tr>
+                    <td>${s.name || ''}</td>
+                    <td>${s.email || ''}</td>
+                    <td><span class="status-badge status-${s.role || ''}">${(s.role || '').toUpperCase()}</span></td>
+                    <td>${s.department || ''}</td>
+                    <td>
+                        <button class="btn btn-primary" onclick="editStaff(${s.id})" style="padding:4px 8px; margin-right:4px;">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteStaff(${s.id})" style="padding:4px 8px;">Delete</button>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="5" style="text-align:center; padding:20px; color:#666;">No staff found</td></tr>';
+        }
+
+        function openAddStaffModal() {
+            document.getElementById('staffModalTitle').textContent = 'Add Staff';
+            document.getElementById('staffForm').reset();
+            document.getElementById('staffId').value = '';
+            openModal('staffModal');
+        }
+
+        function editStaff(id) {
+            const staff = allStaff.find(s => s.id == id);
+            if (!staff) return;
+            
+            document.getElementById('staffModalTitle').textContent = 'Edit Staff';
+            document.getElementById('staffId').value = staff.id;
+            document.getElementById('staffName').value = staff.name || '';
+            document.getElementById('staffEmail').value = staff.email || '';
+            document.getElementById('staffRole').value = staff.role || '';
+            document.getElementById('staffDepartment').value = staff.department || '';
+            document.getElementById('staffPassword').required = false;
+            openModal('staffModal');
+        }
+
+        async function deleteStaff(id) {
+            if (!confirm('Are you sure you want to delete this staff member?')) return;
+            
+            try {
+                const response = await fetch('../../php/admin/delete_staff.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showToast('Staff deleted successfully');
+                    loadStaff();
+                    loadDashboardStats();
+                } else {
+                    showToast(data.message || 'Failed to delete staff', 'error');
+                }
+            } catch (error) {
+                showToast('Network error', 'error');
+            }
+        }
+
+        // Student functions
+        async function loadStudents() {
+            try {
+                const response = await fetch('../../php/admin/student_list.php');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allStudents = data.students || [];
+                    renderStudents(allStudents);
+                } else {
+                    document.getElementById('studentTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#800000;">Failed to load students</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading students:', error);
+                document.getElementById('studentTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#800000;">Network error</td></tr>';
+            }
+        }
+
+        function renderStudents(students) {
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = students.map(s => `
+                <tr>
+                    <td>${s.stud_id || ''}</td>
+                    <td>${s.stud_name || ''}</td>
+                    <td>${s.email || ''}</td>
+                    <td>${s.program || ''}</td>
+                    <td>${s.rfid || '—'}</td>
+                    <td><span class="status-badge status-${s.status === 'registered' ? 'available' : 'in_use'}">${s.status || 'Not registered'}</span></td>
+                    <td>
+                        ${s.status !== 'registered' ? 
+                            `<button class="btn btn-success" onclick="completeRegistration(${s.id})" style="padding:4px 8px; margin-right:4px;">Complete Registration</button>` : 
+                            ''
+                        }
+                        <button class="btn btn-primary" onclick="editStudent(${s.id})" style="padding:4px 8px; margin-right:4px;">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteStudent(${s.id})" style="padding:4px 8px;">Delete</button>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="7" style="text-align:center; padding:20px; color:#666;">No students found</td></tr>';
+        }
+
+        function openAddStudentModal() {
+            document.getElementById('studentModalTitle').textContent = 'Add Student';
+            document.getElementById('studentForm').reset();
+            document.getElementById('studentId').value = '';
+            openModal('studentModal');
+        }
+
+        function editStudent(id) {
+            const student = allStudents.find(s => s.id == id);
+            if (!student) return;
+            
+            document.getElementById('studentModalTitle').textContent = 'Edit Student';
+            document.getElementById('studentId').value = student.id;
+            document.getElementById('studentIdInput').value = student.stud_id || '';
+            document.getElementById('studentName').value = student.stud_name || '';
+            document.getElementById('studentEmail').value = student.email || '';
+            document.getElementById('studentProgram').value = student.program || '';
+            openModal('studentModal');
+        }
+
+        async function deleteStudent(id) {
+            if (!confirm('Are you sure you want to delete this student?')) return;
+            
+            try {
+                const response = await fetch('../../php/admin/delete_student.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showToast('Student deleted successfully');
+                    loadStudents();
+                    loadDashboardStats();
+                } else {
+                    showToast(data.message || 'Failed to delete student', 'error');
+                }
+            } catch (error) {
+                showToast('Network error', 'error');
+            }
+        }
+
+        function completeRegistration(id) {
+            // Find the student data
+            const student = allStudents.find(s => s.id === id);
+            if (!student) {
+                showToast('Student not found', 'error');
+                return;
+            }
+
+            // Open RFID assignment modal
+            document.getElementById('rfidModalTitle').textContent = `Complete Registration - ${student.stud_name}`;
+            document.getElementById('rfidStudentId').value = id;
+            document.getElementById('rfidInput').value = '';
+            document.getElementById('rfidModal').style.display = 'flex';
+        }
+
+        // Equipment functions
+        async function loadEquipment() {
+            try {
+                const response = await fetch('../../php/admin/equipment_list.php');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allEquipment = data.equipment || [];
+                    renderEquipment(allEquipment);
+                } else {
+                    document.getElementById('equipmentTableBody').innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#800000;">Failed to load equipment</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading equipment:', error);
+                document.getElementById('equipmentTableBody').innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#800000;">Network error</td></tr>';
+            }
+        }
+
+        function renderEquipment(equipment) {
+            const tbody = document.getElementById('equipmentTableBody');
+            tbody.innerHTML = equipment.map(e => `
+                <tr>
+                    <td>
+                        ${e.equipment_img ? 
+                            (() => { const img = e.equipment_img || ''; const src = img.startsWith('uploads/') ? `../../${img}` : `../../uploads/equipment/${img}`; return `<img src="${src}" alt="${e.equipment_name}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">`; })() : 
+                            '<div style="width: 40px; height: 40px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #666; font-size: 10px;">No Image</div>'
+                        }
+                    </td>
+                    <td>${e.equipment_name || ''}</td>
+                    <td>${e.quantity || 1}</td>
+                    <td>${e.department || ''}</td>
+                    <td><span class="status-badge status-${e.status || 'available'}">${(e.status || 'available').replace('_', ' ').toUpperCase()}</span></td>
+                    <td>
+                        <button class="btn btn-primary" onclick="editEquipment(${e.equipment_id})" style="padding:4px 8px; margin-right:4px;">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteEquipment(${e.equipment_id})" style="padding:4px 8px;">Delete</button>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="6" style="text-align:center; padding:20px; color:#666;">No equipment found</td></tr>';
+        }
+
+        function openAddEquipmentModal() {
+            document.getElementById('equipmentModalTitle').textContent = 'Add Equipment';
+            document.getElementById('equipmentForm').reset();
+            document.getElementById('equipmentId').value = '';
+            openModal('equipmentModal');
+        }
+
+        function editEquipment(id) {
+            const equipment = allEquipment.find(e => e.equipment_id == id);
+            if (!equipment) return;
+            
+            document.getElementById('equipmentModalTitle').textContent = 'Edit Equipment';
+            document.getElementById('equipmentId').value = equipment.equipment_id;
+            document.getElementById('equipmentName').value = equipment.equipment_name || '';
+            document.getElementById('equipmentQuantity').value = equipment.quantity || 1;
+            document.getElementById('equipmentDepartment').value = equipment.department || '';
+            document.getElementById('equipmentStatus').value = equipment.status || 'available';
+            openModal('equipmentModal');
+        }
+
+        async function deleteEquipment(id) {
+            if (!confirm('Are you sure you want to delete this equipment?')) return;
+            
+            try {
+                const response = await fetch('../../php/admin/delete_equipment.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showToast('Equipment deleted successfully');
+                    loadEquipment();
+                    loadDashboardStats();
+                } else {
+                    showToast(data.message || 'Failed to delete equipment', 'error');
+                }
+            } catch (error) {
+                showToast('Network error', 'error');
+            }
+        }
+
+        // Load admin's department for equipment forms only
+        async function loadAdminDepartment() {
+            try {
+                const response = await fetch('../../php/superadmin/user_check_session.php');
+                const data = await response.json();
+                
+                if (data.success && data.department) {
+                    // Update department field in equipment modal only
+                    document.getElementById('equipmentDepartment').value = data.department;
+                } else {
+                    // Fallback: try to get from session data
+                    const sessionResponse = await fetch('../../php/admin/staff_list.php');
+                    const sessionData = await sessionResponse.json();
+                    if (sessionData.debug && sessionData.debug.session_department) {
+                        document.getElementById('equipmentDepartment').value = sessionData.debug.session_department;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading admin department:', error);
+            }
+        }
+
+        // Search and filter functions
+        function setupSearchFilters() {
+            // Staff search
+            document.getElementById('staffSearch').addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                const filtered = allStaff.filter(s => {
+                    if (!query) return true;
+                    return (s.name || '').toLowerCase().includes(query) || 
+                           (s.email || '').toLowerCase().includes(query) ||
+                           (s.role || '').toLowerCase().includes(query);
+                });
+                renderStaff(filtered);
+            });
+
+            // Student search
+            document.getElementById('studentSearch').addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                const filtered = allStudents.filter(s => {
+                    if (!query) return true;
+                    return (s.stud_id || '').toLowerCase().includes(query) || 
+                           (s.stud_name || '').toLowerCase().includes(query) ||
+                           (s.email || '').toLowerCase().includes(query) ||
+                           (s.program || '').toLowerCase().includes(query);
+                });
+                renderStudents(filtered);
+            });
+
+            // Equipment search
+            document.getElementById('equipmentSearch').addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                const filtered = allEquipment.filter(e => {
+                    if (!query) return true;
+                    return (e.equipment_name || '').toLowerCase().includes(query) || 
+                           (e.department || '').toLowerCase().includes(query) ||
+                           (e.status || '').toLowerCase().includes(query);
+                });
+                renderEquipment(filtered);
+            });
+        }
+
+        // Form submissions
+        function setupFormSubmissions() {
+            // Staff form
+            document.getElementById('staffForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const isEdit = formData.get('id');
+                
+                try {
+                    const response = await fetch(`../../php/admin/${isEdit ? 'update_staff' : 'add_staff'}.php`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        showToast(`Staff ${isEdit ? 'updated' : 'added'} successfully`);
+                        closeModal('staffModal');
+                        loadStaff();
+                        loadDashboardStats();
+                    } else {
+                        showToast(data.message || 'Operation failed', 'error');
+                    }
+                } catch (error) {
+                    showToast('Network error', 'error');
+                }
+            });
+
+            // Student form
+            document.getElementById('studentForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const isEdit = formData.get('id');
+                
+                try {
+                    const response = await fetch(`../../php/admin/${isEdit ? 'update_student' : 'add_student'}.php`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        showToast(`Student ${isEdit ? 'updated' : 'added'} successfully`);
+                        closeModal('studentModal');
+                        loadStudents();
+                        loadDashboardStats();
+                    } else {
+                        showToast(data.message || 'Operation failed', 'error');
+                    }
+                } catch (error) {
+                    showToast('Network error', 'error');
+                }
+            });
+
+            // RFID form
+            document.getElementById('rfidForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const studentId = formData.get('student_id');
+                const rfid = formData.get('rfid');
+                
+                try {
+                    const response = await fetch('../../php/admin/students_update_status.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: studentId, rfid: rfid })
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        showToast('Student registration completed successfully');
+                        closeModal('rfidModal');
+                        loadStudents();
+                        loadDashboardStats();
+                    } else {
+                        showToast(data.message || 'Failed to complete registration', 'error');
+                    }
+                } catch (error) {
+                    showToast('Network error', 'error');
+                }
+            });
+
+            // Equipment form
+            document.getElementById('equipmentForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const isEdit = formData.get('id');
+                
+                try {
+                    const response = await fetch(`../../php/admin/${isEdit ? 'update_equipment' : 'add_equipment'}.php`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        showToast(`Equipment ${isEdit ? 'updated' : 'added'} successfully`);
+                        closeModal('equipmentModal');
+                        loadEquipment();
+                        loadDashboardStats();
+                    } else {
+                        showToast(data.message || 'Operation failed', 'error');
+                    }
+                } catch (error) {
+                    showToast('Network error', 'error');
+                }
+            });
+        }
+
+        // Authentication functions
         function enforceRole(){
             fetch('../../php/superadmin/user_check_session.php')
                 .then(r => r.json())
@@ -37,20 +940,138 @@
                         return;
                     }
                     document.getElementById('username').textContent = data.username || 'Admin';
+                    const roleEl = document.getElementById('adminProfileRole');
+                    if (roleEl) roleEl.textContent = (data.role || 'ADMIN').toString().toUpperCase();
                 })
                 .catch(() => { window.location.href = './login.html'; });
         }
-        function heartbeat(){ fetch('../../php/superadmin/heartbeat.php', { method:'POST' }).catch(()=>{}); }
+
+        function heartbeat(){ 
+            fetch('../../php/superadmin/heartbeat.php', { method:'POST' }).catch(()=>{}); 
+        }
+
         function logout(){
+            if (!confirm('Are you sure you want to logout?')) return;
+            
             fetch('../../php/superadmin/user_logout.php', { method:'POST' })
                 .then(() => { window.location.href = './login.html'; })
                 .catch(() => { window.location.href = './login.html'; });
         }
+
+        // Initialize
         document.addEventListener('DOMContentLoaded', function(){
             enforceRole();
             heartbeat();
             setInterval(heartbeat, 120000);
+            
+            // Setup navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.getAttribute('data-section');
+                    switchSection(section);
+                });
+            });
+            
+            // Load initial data
+            loadAdminDepartment();
+            loadDashboardStats();
+            
+            // Setup search and form handlers
+            setupSearchFilters();
+            setupFormSubmissions();
         });
+
+        function toggleAdminAvatarMenu(){
+            const m = document.getElementById('adminAvatarMenu');
+            const visible = m.style.display === 'block';
+            m.style.display = visible ? 'none' : 'block';
+        }
+        document.addEventListener('click', function(e){
+            const menu = document.getElementById('adminAvatarMenu');
+            const avatar = document.getElementById('adminAvatar');
+            if (!menu) return;
+            if (menu.style.display === 'block' && !menu.contains(e.target) && !avatar.contains(e.target)){
+                menu.style.display = 'none';
+            }
+        });
+
+        window.loadAdminProfile = async function(){
+            try{
+                const r = await fetch('../../php/admin/get_profile.php');
+                const d = await r.json();
+                const av = document.getElementById('adminProfileAvatar');
+                const nameEl = document.getElementById('username');
+                const modalAv = document.getElementById('adminProfileAvatar');
+                const n = (d.profile?.username || nameEl.textContent || 'A').trim();
+                const email = d.profile?.email || '';
+                const dept = d.profile?.department || '';
+                const role = d.profile?.role || ''; // Get role from profile
+                // update text fields
+                document.getElementById('adminProfileName').value = n;
+                document.getElementById('adminProfileEmail').value = email;
+                document.getElementById('adminProfileDepartment').value = dept;
+                document.getElementById('adminProfileRole').textContent = role.toUpperCase(); // Update role field
+                // update avatars
+                const url = d.profile?.avatar_url || '';
+                if (url){
+                    av.textContent=''; av.style.backgroundImage = 'url(' + (url.startsWith('http')? url : '../../' + url) + ')';
+                    modalAv.textContent=''; modalAv.style.backgroundImage = 'url(' + (url.startsWith('http')? url : '../../' + url) + ')';
+                }else{
+                    const initial = n.charAt(0).toUpperCase();
+                    av.style.backgroundImage=''; av.textContent = initial;
+                    modalAv.style.backgroundImage=''; modalAv.textContent = initial;
+                }
+            }catch(e){/* ignore */}
+        }
+        window.openAdminProfile = function(){
+            const m = document.getElementById('adminAvatarMenu');
+            if (m) m.style.display = 'none';
+            loadAdminProfile();
+            openModal('adminProfileModal');
+        }
+        window.triggerAdminAvatarUpload = function(){ document.getElementById('adminAvatarInput').click(); }
+        document.getElementById('adminAvatarInput').addEventListener('change', async function(){
+            const f = this.files[0]; if(!f) return; const fd = new FormData(); fd.append('avatar', f);
+            try{
+                const r = await fetch('../../php/admin/update_profile.php', { method:'POST', body: fd });
+                const d = await r.json();
+                if (d.success){ showToast('Profile updated'); loadAdminProfile(); }
+                else { showToast(d.message || 'Update failed'); }
+            }catch{ showToast('Network error'); }
+        });
+        window.removeAdminAvatar = async function(){
+            try{
+                const r = await fetch('../../php/admin/remove_profile.php', { method:'POST' });
+                const d = await r.json();
+                if (d.success){ showToast('Profile removed'); loadAdminProfile(); }
+                else { showToast(d.message || 'Remove failed'); }
+            }catch{ showToast('Network error'); }
+        }
+
+        // New function to save admin profile changes
+        window.saveAdminProfile = async function() {
+            const form = document.getElementById('adminProfileModal').querySelector('form');
+            const formData = new FormData(form);
+            const isEdit = formData.get('id'); // Assuming 'id' is not in the form, so it's always new
+
+            try {
+                const response = await fetch(`../../php/admin/update_profile.php`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('Profile updated successfully');
+                    closeModal('adminProfileModal');
+                    loadAdminProfile(); // Reload profile to show updated role
+                } else {
+                    showToast(data.message || 'Failed to update profile', 'error');
+                }
+            } catch (error) {
+                showToast('Network error', 'error');
+            }
+        }
     </script>
 </body>
 </html>

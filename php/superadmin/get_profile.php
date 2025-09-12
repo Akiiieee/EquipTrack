@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../config.php';
+require_once '../../config/db.php';
 
 header('Content-Type: application/json');
 
@@ -13,10 +13,10 @@ try {
     $super_admin_id = $_SESSION['super_admin_id'];
     
     // Get super admin details
-    $result = supabase_select('super_admins', ['username', 'profile_image'], ['super_admin_id' => $super_admin_id]);
+    [$code, $rows] = supabase_select('super_admin', ['super_admin_id' => 'eq.' . $super_admin_id], 'username,profile_image', ['limit' => 1]);
     
-    if ($result && count($result) > 0) {
-        $admin = $result[0];
+    if (is_array($rows) && count($rows) > 0) {
+        $admin = $rows[0];
         echo json_encode([
             'success' => true,
             'username' => $admin['username'],

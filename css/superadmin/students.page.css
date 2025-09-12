@@ -1,0 +1,16 @@
+/* Layout grid mirrors dashboard */
+@media (max-width: 992px){
+  .layout-grid { grid-template-columns: 1fr; padding: 16px; }
+  aside { position: static !important; height: auto !important; }
+}
+
+.form-card { background:#fff; border-radius:12px; padding:30px; box-shadow:0 4px 15px rgba(0,0,0,0.1); }
+.table-scroll { overflow:auto; }
+
+/* Table tweaks for small screens */
+@media (max-width: 768px){
+  .table-scroll table { min-width: 720px; }
+}
+
+.status-badge.available { background:#e9f7ef; color:#155724; border:1px solid #b8dacc; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:700; }
+.status-badge.reserved { background:#fff3cd; color:#856404; border:1px solid #ffeaa7; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:700; }

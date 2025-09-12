@@ -6,6 +6,7 @@
     <title>Manage Users - EquipTrack</title>
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👥</text></svg>">
     <link rel="stylesheet" href="../../css/superadmin/dashboard.css">
+    <link rel="stylesheet" href="../../css/superadmin/users.page.css">
 </head>
 <body>
     <header class="header" style="position:sticky; top:0; z-index:20;">
@@ -26,7 +27,7 @@
             </div>
         </div>
     </header>
-    <div style="max-width:1400px; margin:0 auto; display:grid; grid-template-columns:260px 1fr; gap:24px; padding:24px;">
+    <div style="max-width:1400px; margin:0 auto; display:grid; grid-template-columns:260px 1fr; gap:24px; padding:24px;" class="layout-grid">
         <aside style="background:#fff; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.08); overflow:auto; position:sticky; top:90px; align-self:start; height:calc(100vh - 110px);">
             <div style="background:#800000; color:#fff; padding:18px 20px; font-weight:600;">Super Admin Panel</div>
             <nav style="padding:14px 10px;">
@@ -50,7 +51,7 @@
                         <button id="openAddUser" class="submit-btn" style="background:#ffd60a; color:#800000;">Add User</button>
                     </div>
                 </div>
-                <div id="usersTable" style="overflow:auto;">
+                <div id="usersTable" class="table-scroll">
                     <table style="width:100%; border-collapse: collapse;">
                         <thead>
                             <tr style="text-align:left; border-bottom:1px solid #eee;">

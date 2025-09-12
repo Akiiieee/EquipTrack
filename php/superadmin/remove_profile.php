@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../config.php';
+require_once '../../config/db.php';
 
 header('Content-Type: application/json');
 
@@ -13,10 +13,10 @@ try {
     $super_admin_id = $_SESSION['super_admin_id'];
     
     // Get current profile image
-    $result = supabase_select('super_admins', ['profile_image'], ['super_admin_id' => $super_admin_id]);
+    [$code, $rows] = supabase_select('super_admin', ['super_admin_id' => 'eq.' . $super_admin_id], 'profile_image', ['limit' => 1]);
     
-    if ($result && count($result) > 0 && $result[0]['profile_image']) {
-        $filename = $result[0]['profile_image'];
+    if (is_array($rows) && count($rows) > 0 && !empty($rows[0]['profile_image'])) {
+        $filename = $rows[0]['profile_image'];
         $filepath = '../../uploads/avatars/' . $filename;
         
         // Remove file if it exists
@@ -25,9 +25,9 @@ try {
         }
         
         // Update database to remove profile image
-        $update_result = supabase_update('super_admins', ['profile_image' => null], ['super_admin_id' => $super_admin_id]);
+        [$update_code, $update_rows] = supabase_update('super_admin', ['super_admin_id' => 'eq.' . $super_admin_id], ['profile_image' => null]);
         
-        if ($update_result) {
+        if ($update_code >= 200 && $update_code < 300) {
             echo json_encode(['success' => true, 'message' => 'Profile picture removed successfully']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Failed to update database']);
